@@ -156,8 +156,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const area = parseFloat(document.getElementById('area')?.value) || 0;
             const irrigationType = document.getElementById('irrigationType')?.value || 'drip';
             const automation = document.getElementById('automation')?.value || 'basic';
-            let basePrice = area * 12000000;
-            if (irrigationType === 'sprinkler') basePrice *= 0.8;
+            let basePrice = area * 25000000;
+            if (irrigationType === 'sprinkler') basePrice *= 1;
             if (irrigationType === 'combined') basePrice *= 1.2;
             if (automation === 'semi') basePrice *= 1.15;
             if (automation === 'smart') basePrice *= 1.3;
