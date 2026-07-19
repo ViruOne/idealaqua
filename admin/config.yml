@@ -1,6 +1,6 @@
 backend:
   name: github
-  repo: ViruOne/idealakva
+  repo: ViruOne/idealaqua
   branch: main
   base_url: https://oauth.staticcms.org
   
