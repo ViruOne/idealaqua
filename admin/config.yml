@@ -1,9 +1,9 @@
 backend:
   name: github
-  repo: KarimjonAsliddinov/repo-nomi # GitHub foydalanuvchi nomingiz va repozitoriya nomini yozing
-  branch: main # Agar asosiy branch master bo'lsa, master deb yozing
-  base_url: https://api.netlify.com # Vaqtincha avtorizatsiya serveri sifatida Netlify-dan foydalanamiz
-
+  repo: KarimjonAsliddinov/idealakva  # GitHub foydalanuvchi va repozitoriya nomingiz
+  branch: main
+  base_url: https://auth.decapcms.org # Decap CMS rasmiy va mutlaqo bepul tekin OAuth xizmati
+  
 media_folder: "images/uploads" # Rasmlar saqlanadigan papka
 public_folder: "/images/uploads"
 
