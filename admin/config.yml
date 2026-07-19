@@ -3,6 +3,7 @@ backend:
   repo: ViruOne/idealaqua
   branch: main
   base_url: https://ideal-aqua-auth.vercel.app
+  auth_type: implicit
   
 media_folder: "images/uploads" # Rasmlar saqlanadigan papka
 public_folder: "/images/uploads"
