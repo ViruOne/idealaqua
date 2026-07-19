@@ -4,6 +4,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Content Manager</title>
+    <script>
+      // Agar foydalanuvchi /admin deb slesh belgisiz kirsa, avtomatik /admin/ ga yo'naltiramiz
+      if (!window.location.pathname.endsWith('/')) {
+        window.location.replace(window.location.pathname + '/' + window.location.hash);
+      }
+    </script>
     <!-- Netlify Identity vidjeti -->
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   </head>
@@ -11,7 +17,6 @@
     <!-- Decap CMS skripti -->
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
     <script>
-      // Identity vidjetini asosiy domen bilan bog'laymiz
       if (window.netlifyIdentity) {
         window.netlifyIdentity.on("init", user => {
           if (!user) {
@@ -22,7 +27,6 @@
         });
       }
     </script>
-    <!-- Sayt o'zining Netlify Identity sozlamalarini topishi uchun script -->
     <script>
       localStorage.setItem('netlifySiteURL', 'https://shop.idealaqua.uz');
     </script>
