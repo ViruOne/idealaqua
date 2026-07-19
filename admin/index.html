@@ -4,19 +4,22 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Content Manager</title>
-    <!-- Netlify Identity vidjetini yuklash -->
+    <!-- Netlify Identity vidjeti -->
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script>
+      // Netlify Identity'ni CMS yuklanishidan oldin majburiy ishga tushiramiz va asosiy domenga ulaymiz
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.init({
+          APIUrl: 'https://shop.idealaqua.uz/.netlify/identity'
+        });
+      }
+    </script>
   </head>
   <body>
     <!-- Decap CMS skriptini yuklash -->
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
-
     <script>
-      // CMS yuklanishidan oldin subdomendagi Identity manzilini global xotiraga majburiy yozamiz
-      window.netlifyIdentity = window.netlifyIdentity || {};
-      localStorage.setItem('netlifySiteURL', 'https://shop.idealaqua.uz');
-
-      // Login muvaffaqiyatli bo'lsa, sahifani yangilash
+      // Kirish muvaffaqiyatli bo'lganda /admin/ sahifasiga qayta yo'naltirish
       if (window.netlifyIdentity) {
         window.netlifyIdentity.on("init", user => {
           if (!user) {
