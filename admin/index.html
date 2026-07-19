@@ -4,12 +4,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Content Manager</title>
-    <script>
-      // Agar foydalanuvchi /admin deb slesh belgisiz kirsa, avtomatik /admin/ ga yo'naltiramiz
-      if (!window.location.pathname.endsWith('/')) {
-        window.location.replace(window.location.pathname + '/' + window.location.hash);
-      }
-    </script>
     <!-- Netlify Identity vidjeti -->
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   </head>
@@ -17,6 +11,14 @@
     <!-- Decap CMS skripti -->
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
     <script>
+      // CMS yuklanishidan oldin subdomen muammosini API manzilini qo'lda bog'lash orqali hal qilamiz
+      window.CMS_CONFIG = {
+        backend: {
+          name: 'git-gateway',
+          branch: 'main'
+        }
+      };
+
       if (window.netlifyIdentity) {
         window.netlifyIdentity.on("init", user => {
           if (!user) {
@@ -27,8 +29,13 @@
         });
       }
     </script>
+    
+    <!-- SUBDOMENDA NETLIFY IDENTITY ISHLASHI UCHUN ASOSIY KALIT -->
     <script>
-      localStorage.setItem('netlifySiteURL', 'https://shop.idealaqua.uz');
+      // Netlify Identity vidjetini aynan sizning shop subdomeningiz xizmatiga bog'laymiz
+      netlifyIdentity.init({
+        APIUrl: 'https://shop.idealaqua.uz/.netlify/identity'
+      });
     </script>
   </body>
 </html>
