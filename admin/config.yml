@@ -1,6 +1,8 @@
 backend:
-  name: git-gateway
-  branch: main # Agar GitHub'dagi asosiy branch nomingiz master bo'lsa, master deb yozing
+  name: github
+  repo: KarimjonAsliddinov/repo-nomi # GitHub foydalanuvchi nomingiz va repozitoriya nomini yozing
+  branch: main # Agar asosiy branch master bo'lsa, master deb yozing
+  base_url: https://api.netlify.com # Vaqtincha avtorizatsiya serveri sifatida Netlify-dan foydalanamiz
 
 media_folder: "images/uploads" # Rasmlar saqlanadigan papka
 public_folder: "/images/uploads"
