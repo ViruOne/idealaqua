@@ -1,8 +1,9 @@
 backend:
   name: github
-  repo: ViruOne/idealaqua  # <- ViruOne va idealaqua harflari aynan GitHub'dagidek bo‘lsin
+  repo: ViruOne/idealaqua
   branch: main
   base_url: https://ideal-aqua-auth.vercel.app
+  auth_endpoint: auth
   
 media_folder: "images/uploads" # Rasmlar saqlanadigan papka
 public_folder: "/images/uploads"
