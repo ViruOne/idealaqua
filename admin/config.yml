@@ -1,8 +1,8 @@
 backend:
   name: github
-  repo: KarimjonAsliddinov/idealakva # GitHub foydalanuvchi va repozitoriya nomingiz
+  repo: ViruOne/idealakva
   branch: main
-  base_url: https://decap-auth.vercel.app
+  base_url: https://ideal-aqua-auth.vercel.app
   
 media_folder: "images/uploads" # Rasmlar saqlanadigan papka
 public_folder: "/images/uploads"
