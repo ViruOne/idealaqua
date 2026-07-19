@@ -1,6 +1,6 @@
 backend:
   name: github
-  repo: ViruOne/idealaqua
+  repo: ViruOne/idealaqua  # <- ViruOne va idealaqua harflari aynan GitHub'dagidek bo‘lsin
   branch: main
   base_url: https://ideal-aqua-auth.vercel.app
   
