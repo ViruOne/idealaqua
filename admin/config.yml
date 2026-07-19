@@ -2,7 +2,7 @@ backend:
   name: github
   repo: ViruOne/idealaqua
   branch: main
-  base_url: https://oauth.staticcms.org
+  base_url: https://ideal-aqua-auth.vercel.app
   
 media_folder: "images/uploads" # Rasmlar saqlanadigan papka
 public_folder: "/images/uploads"
