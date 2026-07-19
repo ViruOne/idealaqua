@@ -1,7 +1,7 @@
 backend:
   name: git-gateway
-  repo: ViruOne/idealaqua
   branch: main
+  site_domain: shop.idealaqua.uz
   
 media_folder: "images/uploads" # Rasmlar saqlanadigan papka
 public_folder: "/images/uploads"
