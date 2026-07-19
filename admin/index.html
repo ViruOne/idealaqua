@@ -4,37 +4,21 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Content Manager</title>
-    <!-- Netlify Identity vidjeti -->
+    <!-- Netlify Identity vidjetini yuklash -->
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   </head>
   <body>
-    <!-- Decap CMS skripti -->
+    <!-- Decap CMS skriptini yuklash -->
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
-    <script>
-      // CMS yuklanishidan oldin subdomen muammosini API manzilini qo'lda bog'lash orqali hal qilamiz
-      window.CMS_CONFIG = {
-        backend: {
-          name: 'git-gateway',
-          branch: 'main'
-        }
-      };
 
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on("init", user => {
-          if (!user) {
-            window.netlifyIdentity.on("login", () => {
-              document.location.href = "/admin/";
-            });
-          }
-        });
-      }
-    </script>
-    
-    <!-- SUBDOMENDA NETLIFY IDENTITY ISHLASHI UCHUN ASOSIY KALIT -->
     <script>
-      // Netlify Identity vidjetini aynan sizning shop subdomeningiz xizmatiga bog'laymiz
-      netlifyIdentity.init({
-        APIUrl: 'https://shop.idealaqua.uz/.netlify/identity'
+      // Vidjetni majburiy ravishda asosiy domen API'siga ulaymiz
+      document.addEventListener("DOMContentLoaded", function() {
+        if (window.netlifyIdentity) {
+          window.netlifyIdentity.init({
+            APIUrl: 'https://shop.idealaqua.uz/.netlify/identity'
+          });
+        }
       });
     </script>
   </body>
