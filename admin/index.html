@@ -12,14 +12,20 @@
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
 
     <script>
-      // Vidjetni majburiy ravishda asosiy domen API'siga ulaymiz
-      document.addEventListener("DOMContentLoaded", function() {
-        if (window.netlifyIdentity) {
-          window.netlifyIdentity.init({
-            APIUrl: 'https://shop.idealaqua.uz/.netlify/identity'
-          });
-        }
-      });
+      // CMS yuklanishidan oldin subdomendagi Identity manzilini global xotiraga majburiy yozamiz
+      window.netlifyIdentity = window.netlifyIdentity || {};
+      localStorage.setItem('netlifySiteURL', 'https://shop.idealaqua.uz');
+
+      // Login muvaffaqiyatli bo'lsa, sahifani yangilash
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.on("init", user => {
+          if (!user) {
+            window.netlifyIdentity.on("login", () => {
+              document.location.href = "/admin/";
+            });
+          }
+        });
+      }
     </script>
   </body>
 </html>
