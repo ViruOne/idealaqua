@@ -159,7 +159,7 @@
         </div>
     </div>
 
-  <script>
+<script>
     const BOT_TOKEN = "YOUR_BOT_TOKEN"; 
     const CHAT_ID = "YOUR_CHAT_ID";     
 
@@ -170,89 +170,81 @@
     async function loadProducts() {
         const grid = document.getElementById('products-grid');
         try {
+            // Keshni aylanib o'tish uchun vaqt qo'shamiz
             const t = new Date().getTime();
             
-            // 1. Asosiy ro'yxatni yuklash
+            // 1. GitHub Action yaratgan indeks JSON faylini yuklaymiz
             const res = await fetch(`/data/products.json?v=${t}`);
-            if (!res.ok) throw new Error("products.json fayli topilmadi");
+            if (!res.ok) throw new Error("products.json topilmadi");
             
             const fileNames = await res.json();
             
-            // Agar products.json massiv bo'lmasa yoki bo'sh bo'lsa
             if (!Array.isArray(fileNames) || fileNames.length === 0) {
                 renderCategories();
                 return renderEmpty("Hozircha mahsulotlar kiritilmagan.");
             }
 
-            // 2. Har bir mahsulot JSON faylini o'qish
+            // 2. Har bir mahsulot faylini o'qiymiz
             const promises = fileNames.map(async (f) => {
                 try {
-                    // Agar f ob'ekt bo'lib kelgan bo'lsa (ba'zi CMS larda shunday bo'ladi)
                     if (typeof f === 'object' && f !== null) return f;
-                    
                     const pRes = await fetch(`/data/products/${f}?v=${t}`);
                     if (pRes.ok) return await pRes.json();
                 } catch (e) {
-                    console.warn(`Fayl o'qishda xato: ${f}`, e);
+                    console.warn(`Fayl o'qishda xatolik: ${f}`, e);
                 }
                 return null;
             });
             
             const rawProducts = await Promise.all(promises);
-            
-            // Yaroqli mahsulotlarni saralab olish
             allProducts = rawProducts.filter(p => p !== null && typeof p === 'object');
             
-            // Kategoriyalarni ekranga chiqarish va mahsulotlarni filtrlash
+            // Kategoriyalarni yaratish va filtrlash
             renderCategories();
             filterProducts();
 
         } catch (e) {
             console.error("Yuklash xatosi:", e);
             renderCategories();
-            renderEmpty("Mahsulotlar yuklanishida xatolik bo'ldi yoki bazada mahsulot yo'q.");
+            renderEmpty("Mahsulotlarni yuklashda xatolik yuz berdi.");
         }
     }
 
-    // KATEGORIYALARNI UCHRA SHARTDA HAM ANQLASH VA CHIQARISH
+    // CMS'DAN KELGAN KATEGORIYALARNI CHIQARISH
     function renderCategories() {
-        const catNav = document.getElementById('categories-list');
+        const catNav = document.querySelector('aside nav');
         if (!catNav) return;
 
         const counts = {};
         
         allProducts.forEach(p => {
-            // CMS'dan category yoki kategoriya kaliti kelishini tekshiramiz
-            let rawCat = p.category || p.kategoriya || 'Boshqa';
-            
-            // Bo'sh satr bo'lsa "Boshqa" deb olamiz
-            if (typeof rawCat === 'string') {
-                rawCat = rawCat.trim();
-            }
-            if (!rawCat) rawCat = 'Boshqa';
+            let cat = p.category || p.kategoriya || 'Boshqa';
+            if (typeof cat === 'string') cat = cat.trim();
+            if (!cat) cat = 'Boshqa';
 
-            counts[rawCat] = (counts[rawCat] || 0) + 1;
+            counts[cat] = (counts[cat] || 0) + 1;
         });
 
         // "Barchasi" tugmasi
         let html = `
-            <button onclick="selectCategory('all')" id="cat-btn-all" 
-                    class="cat-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition text-left ${currentCategory === 'all' ? 'bg-aqua-500/10 text-aqua-400 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-900'}">
+            <button onclick="selectCategory('all')" 
+                    class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition text-left ${currentCategory === 'all' ? 'bg-aqua-500/10 text-aqua-400 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-900'}">
                 <span><i class="fas fa-border-all mr-2 opacity-70"></i> Barchasi</span>
-                <span id="count-all" class="text-xs px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">${allProducts.length}</span>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">${allProducts.length}</span>
             </button>
         `;
 
-        // Har bir kategoriya uchun tugma hosil qilish
+        // Admin paneldan kiritingan har bir kategoriya uchun tugma
         Object.keys(counts).forEach(cat => {
             const isActive = currentCategory === cat;
             const activeClasses = isActive 
                 ? 'bg-aqua-500/10 text-aqua-400 font-semibold' 
                 : 'text-slate-400 hover:text-white hover:bg-slate-900';
             
+            const safeCat = cat.replace(/'/g, "\\'");
             html += `
-                <button onclick="selectCategory('${cat.replace(/'/g, "\\'")}')" 
-                        class="cat-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition text-left ${activeClasses}">
+                <button onclick="selectCategory('${safeCat}')" 
+                        class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition text-left ${activeClasses}">
                     <span class="truncate"><i class="fas fa-folder mr-2 opacity-70"></i> ${cat}</span>
                     <span class="text-xs px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">${counts[cat]}</span>
                 </button>
@@ -266,6 +258,24 @@
         currentCategory = cat;
         renderCategories(); 
         filterProducts();   
+    }
+
+    function filterProducts() {
+        const desktopInput = document.getElementById('search-input');
+        const q = (desktopInput ? desktopInput.value : '').toLowerCase().trim();
+
+        const filtered = allProducts.filter(p => {
+            const pCategory = (p.category || p.kategoriya || 'Boshqa').trim();
+            const pTitle = p.title || p.nomi || '';
+            const pBody = p.body || p.tavsif || '';
+
+            const matchCategory = (currentCategory === 'all') || (pCategory === currentCategory);
+            const matchSearch = pTitle.toLowerCase().includes(q) || pBody.toLowerCase().includes(q);
+            
+            return matchCategory && matchSearch;
+        });
+
+        renderProducts(filtered);
     }
 
     function renderProducts(products) {
@@ -339,40 +349,6 @@
         }
     }
 
-    function filterProducts() {
-        const desktopInput = document.getElementById('search-input');
-        const mobileInput = document.getElementById('search-input-mobile');
-        
-        const q = (desktopInput ? desktopInput.value : (mobileInput ? mobileInput.value : '')).toLowerCase().trim();
-
-        const filtered = allProducts.filter(p => {
-            const pCategory = (p.category || p.kategoriya || 'Boshqa').trim();
-            const pTitle = p.title || p.nomi || '';
-            const pBody = p.body || p.tavsif || '';
-
-            const matchCategory = (currentCategory === 'all') || (pCategory === currentCategory);
-            const matchSearch = pTitle.toLowerCase().includes(q) || pBody.toLowerCase().includes(q);
-            
-            return matchCategory && matchSearch;
-        });
-
-        renderProducts(filtered);
-    }
-
-    function syncMobileSearch(val) {
-        const desktopInput = document.getElementById('search-input');
-        if (desktopInput) desktopInput.value = val;
-        filterProducts();
-    }
-
-    function focusMobileSearch() {
-        const mobInput = document.getElementById('search-input-mobile');
-        if (mobInput) {
-            mobInput.scrollIntoView({ behavior: 'smooth' });
-            mobInput.focus();
-        }
-    }
-
     function addToCart(index) {
         const product = allProducts[index];
         if (!product) return;
@@ -392,7 +368,6 @@
 
     function updateCartUI() {
         const badge = document.getElementById('cart-badge');
-        const mobileBadge = document.getElementById('cart-badge-mobile');
         const totalElem = document.getElementById('cart-total');
         const list = document.getElementById('cart-items');
 
@@ -400,7 +375,6 @@
         const totalPrice = cart.reduce((s, i) => s + (i.price * i.qty), 0);
 
         if (badge) badge.textContent = totalQty;
-        if (mobileBadge) mobileBadge.textContent = totalQty;
         if (totalElem) totalElem.textContent = `${totalPrice.toLocaleString()} so'm`;
 
         if (list) {
