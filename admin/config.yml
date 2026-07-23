@@ -1,16 +1,14 @@
 backend:
   name: git-gateway
   branch: main
-  site_domain: shop.idealaqua.uz
-  repo: ViruOne/idealaqua
-  
-media_folder: "images/uploads" # Rasmlar saqlanadigan papka
+
+media_folder: "images/uploads"
 public_folder: "/images/uploads"
 
 collections:
   - name: "products"
     label: "Mahsulotlar"
-    folder: "data/products" # Mahsulotlar fayllari saqlanadigan joy
+    folder: "data/products"
     create: true
     slug: "{{slug}}"
     fields:
