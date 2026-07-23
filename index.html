@@ -172,39 +172,38 @@
         const t = new Date().getTime();
         let loadedItems = [];
 
-        // 1. Asosiy products.json faylini tekshirish
-        try {
-            const res = await fetch(`/products.json?v=${t}`);
-            if (res.ok) {
-                const contentType = res.headers.get("content-type");
-                if (contentType && contentType.includes("application/json")) {
-                    const data = await res.json();
-                    const mainItems = Array.isArray(data) ? data : (data.items || []);
-                    loadedItems = [...loadedItems, ...mainItems];
-                }
-            }
-        } catch (e) {
-            console.log("Main products.json missing or invalid");
-        }
+        // 1. Sveltia avtomatik yangilayotgan indeks faylni o'qiymiz
+        const indexRes = await fetch(`/data/products.json?v=${t}`);
+        
+        if (indexRes.ok) {
+            const fileList = await indexRes.json();
+            
+            if (Array.isArray(fileList)) {
+                // Har bir individual faylni (/data/products/name.json) parallel yuklaymiz
+                const fetchPromises = fileList.map(async (item) => {
+                    try {
+                        // Agar obyekt shaklida bo'lsa to'g'ridan-to'g'ri olamiz
+                        if (typeof item === 'object' && item !== null) return item;
+                        
+                        // Aks holda fayl nomi orqali yuklaymiz
+                        const fileName = typeof item === 'string' ? item : item.file;
+                        const pRes = await fetch(`/data/products/${fileName}?v=${t}`);
+                        if (pRes.ok) return await pRes.json();
+                    } catch (err) { 
+                        return null; 
+                    }
+                });
 
-        // 2. CMS orqali qo'shilgan/yaratilgan /data/products/ papkasidagi ro'yxatni yuklash
-        try {
-            const indexRes = await fetch(`/data/products.json?v=${t}`);
-            if (indexRes.ok) {
-                const fileList = await indexRes.json();
-                if (Array.isArray(fileList)) {
-                    const fetchPromises = fileList.map(async (fileName) => {
-                        try {
-                            const pRes = await fetch(`/data/products/${fileName}?v=${t}`);
-                            if (pRes.ok) return await pRes.json();
-                        } catch (err) { return null; }
-                    });
-                    const cmsItems = await Promise.all(fetchPromises);
-                    loadedItems = [...loadedItems, ...cmsItems.filter(p => p && typeof p === 'object')];
-                }
+                const fetched = await Promise.all(fetchPromises);
+                loadedItems = fetched.filter(p => p && typeof p === 'object');
             }
-        } catch (e) {
-            console.log("CMS dynamic directory read skipped");
+        } else {
+            // Zaxira varianti: Agar topilmasa root'dagi products.json ni tekshiradi
+            const fallbackRes = await fetch(`/products.json?v=${t}`);
+            if (fallbackRes.ok) {
+                const data = await fallbackRes.json();
+                loadedItems = Array.isArray(data) ? data : (data.items || []);
+            }
         }
 
         allProducts = loadedItems;
