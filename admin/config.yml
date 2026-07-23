@@ -1,21 +1,36 @@
 backend:
-  name: github
-  repo: ViruOne/idealaqua
+  name: git-gateway
   branch: main
 
-media_folder: "images/uploads"
-public_folder: "/images/uploads"
+media_folder: "assets/images"
+public_folder: "/assets/images"
 
 collections:
   - name: "products"
     label: "Mahsulotlar"
     folder: "data/products"
-    extension: "json"
-    format: "json"
     create: true
     slug: "{{slug}}"
     fields:
-      - { label: "Mahsulot Nomi", name: "title", widget: "string" }
-      - { label: "Narxi (so'm)", name: "price", widget: "number", value_type: "int" }
+      - { label: "Nomi", name: "title", widget: "string" }
+      
+      # --- KATEGORIYA SELEKTORI ---
+      - { 
+          label: "Kategoriya", 
+          name: "category", 
+          widget: "select", 
+          options: [
+            "Fitinglar", 
+            "Tomchilatib sug'orish", 
+            "Rain Gun (Yomg'irlatgichlar)", 
+            "Nasoslar va Boshqaruv", 
+            "Quvurlar", 
+            "Boshqa"
+          ],
+          default: "Fitinglar"
+        }
+      # ---------------------------
+
+      - { label: "Narxi (so'mda)", name: "price", widget: "number", value_type: "int" }
       - { label: "Rasm", name: "image", widget: "image", required: false }
       - { label: "Batafsil ma'lumot", name: "body", widget: "text", required: false }
