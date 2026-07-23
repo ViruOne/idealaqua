@@ -1,1 +1,28 @@
+name: Generate Products Index
 
+on:
+  push:
+    paths:
+      - 'data/products/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Generate JSON List
+        run: |
+          cd data/products
+          echo '[' > ../products.json
+          ls -1 *.json 2>/dev/null | sed 's/.*/  "&",/' | sed '$ s/,$//' >> ../products.json || true
+          echo ']' >> ../products.json
+
+      - name: Commit & Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/products.json
+          git status
+          git diff-index --quiet HEAD || git commit -m "auto: update products.json index"
+          git push
