@@ -1,6 +1,5 @@
 backend:
-  name: github
-  repo: GITHUB_USERNAME/REPO_NOMI # Masalan: ideal-aqua/website
+  name: git-gateway
   branch: main
 
 media_folder: "assets/images"
@@ -13,8 +12,29 @@ collections:
     create: true
     slug: "{{slug}}"
     fields:
-      - { label: "Nomi", name: "title", widget: "string" }
-      - { label: "Kategoriya", name: "category", widget: "string", default: "Fitinglar" }
-      - { label: "Narxi (so'mda)", name: "price", widget: "number", value_type: "int" }
-      - { label: "Rasm", name: "image", widget: "image", required: false }
-      - { label: "Batafsil ma'lumot", name: "body", widget: "text", required: false }
+      - label: "Nomi"
+        name: "title"
+        widget: "string"
+      - label: "Kategoriya"
+        name: "category"
+        widget: "select"
+        options:
+          - "Fitinglar"
+          - "Tomchilatib sug'orish"
+          - "Rain Gun (Yomg'irlatgichlar)"
+          - "Nasoslar va Boshqaruv"
+          - "Quvurlar"
+          - "Boshqa"
+        default: "Fitinglar"
+      - label: "Narxi (so'mda)"
+        name: "price"
+        widget: "number"
+        value_type: "int"
+      - label: "Rasm"
+        name: "image"
+        widget: "image"
+        required: false
+      - label: "Batafsil ma'lumot"
+        name: "body"
+        widget: "text"
+        required: false
