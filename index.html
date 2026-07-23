@@ -1,331 +1,426 @@
 <!DOCTYPE html>
-<html lang="uz">
+<html lang="uz" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IDEAL AQUA - Online Do'kon</title>
+    <title>IDEAL AQUA — Onlayn Do'kon</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome & Google Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+        }
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .animate-skeleton {
+            animation: pulse-subtle 1.5s infinite ease-in-out;
+        }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
 
-    <!-- Header -->
-    <header class="bg-blue-600 text-white sticky top-0 z-50 shadow-md">
-        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-bold tracking-wide">IDEAL AQUA <span class="text-xs bg-blue-500 px-2 py-1 rounded">SHOP</span></h1>
-            <button onclick="toggleCart()" class="relative bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-lg transition flex items-center gap-2">
-                <i class="fas fa-shopping-cart"></i>
-                <span>Savatcha</span>
-                <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full hidden">0</span>
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/80 transition-all duration-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+            <!-- Logo -->
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-11 h-11 bg-gradient-to-tr from-brand-600 to-cyan-400 rounded-xl flex items-center justify-center text-white shadow-md shadow-brand-500/20 group-hover:scale-105 transition duration-300">
+                    <i class="fas fa-droplet text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-brand-900 via-brand-700 to-brand-500 bg-clip-text text-transparent">IDEAL AQUA</span>
+                    <span class="block text-[10px] font-semibold text-slate-400 tracking-wider uppercase">Rasmiy do'kon</span>
+                </div>
+            </a>
+
+            <!-- Search Bar (Desktop) -->
+            <div class="hidden md:flex items-center flex-1 max-w-md relative">
+                <i class="fas fa-search absolute left-4 text-slate-400 text-sm"></i>
+                <input type="text" id="search-input" oninput="filterProducts()" placeholder="Mahsulotlarni izlash..." 
+                       class="w-full pl-11 pr-4 py-2.5 bg-slate-100/80 border border-transparent rounded-full text-sm focus:outline-none focus:border-brand-500 focus:bg-white transition duration-200">
+            </div>
+
+            <!-- Cart Trigger Button -->
+            <button onclick="toggleCart(true)" class="relative flex items-center gap-2.5 bg-brand-50 hover:bg-brand-100/80 text-brand-700 px-4 py-2.5 rounded-full font-semibold text-sm transition duration-200 group">
+                <div class="relative">
+                    <i class="fas fa-shopping-bag text-lg group-hover:scale-110 transition duration-200"></i>
+                    <span id="cart-badge" class="hidden absolute -top-2 -right-2 bg-rose-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">0</span>
+                </div>
+                <span class="hidden sm:inline">Savatcha</span>
+                <span id="cart-total-header" class="text-xs font-extrabold bg-brand-600 text-white px-2 py-0.5 rounded-full">0 so'm</span>
             </button>
+        </div>
+
+        <!-- Search Bar (Mobile) -->
+        <div class="md:hidden px-4 pb-3">
+            <div class="relative">
+                <i class="fas fa-search absolute left-3.5 top-3 text-slate-400 text-sm"></i>
+                <input type="text" id="search-input-mobile" oninput="filterProductsMobile()" placeholder="Mahsulot izlash..." 
+                       class="w-full pl-10 pr-4 py-2 bg-slate-100 border border-transparent rounded-xl text-sm focus:outline-none focus:border-brand-500 focus:bg-white">
+            </div>
         </div>
     </header>
 
-    <!-- Mahsulotlar vitrinasi -->
-    <main class="container mx-auto px-4 py-8">
-        <h2 class="text-2xl font-bold mb-6 text-center text-gray-700">Mahsulotlarimiz</h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="products-grid">
-            <!-- Mahsulot 1 -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition">
-                <div class="h-48 bg-blue-100 flex items-center justify-center">
-                    <i class="fas fa-faucet-drip text-blue-500 text-6xl"></i>
-                </div>
-                <div class="p-5">
-                    <h3 class="font-bold text-lg mb-2">Aqlli sug'orish tizimi (Smart Irrigation)</h3>
-                    <p class="text-gray-500 text-sm mb-4">Suvni va vaqtni tejovchi, avtomatlashtirilgan aqlli sug'orish boshqaruvchisi.</p>
-                    <div class="flex justify-between items-center">
-                        <span class="text-blue-600 font-bold text-xl">1,200,000 so'm</span>
-                        <button onclick="addToCart('Aqlli sug\'orish tizimi', 1200000)" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition">
-                            Savatchaga qo'shish
-                        </button>
-                    </div>
-                </div>
-            </div>
+    <!-- Hero Banner -->
+    <section class="relative bg-gradient-to-br from-brand-900 via-slate-900 to-brand-950 text-white py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#0284c7_1px,transparent_1px)] [background-size:16px_16px]"></div>
+        <div class="max-w-7xl mx-auto relative z-10 flex flex-col items-center text-center">
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/20 text-brand-300 text-xs font-semibold mb-4 border border-brand-500/30">
+                <i class="fas fa-shield-halved text-brand-400"></i> Yuqori sifat va kafolat
+            </span>
+            <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight max-w-3xl leading-tight">
+                Suv Tejovchi Zamonaviy Sug'orish Tizimlari
+            </h1>
+            <p class="mt-3 text-slate-300 text-sm sm:text-base max-w-xl">
+                Tizimlar uchun sifatli fitinglar va ehtiyot qismlarini to'g'ridan-to'g'ri ishlab chiqaruvchidan xarid qiling.
+            </p>
+        </div>
+    </section>
 
-            <!-- Mahsulot 2 -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition">
-                <div class="h-48 bg-blue-100 flex items-center justify-center">
-                    <i class="fas fa-shower text-blue-500 text-6xl"></i>
-                </div>
-                <div class="p-5">
-                    <h3 class="font-bold text-lg mb-2">Tomchilab sug'orish shlangi (Premium)</h3>
-                    <p class="text-gray-500 text-sm mb-4">Polimer sanoati standartlariga mos, chidamli va sifatli tomchilatish shlangi (100 metr).</p>
-                    <div class="flex justify-between items-center">
-                        <span class="text-blue-600 font-bold text-xl">350,000 so'm</span>
-                        <button onclick="addToCart('Tomchilab sug\'orish shlangi (100m)', 350000)" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition">
-                            Savatchaga qo'shish
-                        </button>
-                    </div>
-                </div>
+    <!-- Main Content Vitrina -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full">
+        <!-- Section Header -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b border-slate-200 pb-4">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900">Mahsulotlar katalogi</h2>
+                <p class="text-slate-500 text-sm mt-0.5">Sizga kerakli barcha fiting va qurilmalar</p>
             </div>
+            <div id="product-count" class="text-xs font-semibold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-lg">
+                Yuklanmoqda...
+            </div>
+        </div>
 
-            <!-- Mahsulot 3 -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition">
-                <div class="h-48 bg-blue-100 flex items-center justify-center">
-                    <i class="fas fa-gauge-high text-blue-500 text-6xl"></i>
-                </div>
-                <div class="p-5">
-                    <h3 class="font-bold text-lg mb-2">Bosim datchigi va sensorlar</h3>
-                    <p class="text-gray-500 text-sm mb-4">Tizimdagi suv bosimini o'lchash va gidravlikani nazorat qilish uchun maxsus sensor.</p>
-                    <div class="flex justify-between items-center">
-                        <span class="text-blue-600 font-bold text-xl">450,000 so'm</span>
-                        <button onclick="addToCart('Bosim datchigi va sensorlar', 450000)" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition">
-                            Savatchaga qo'shish
-                        </button>
-                    </div>
-                </div>
+        <!-- Products Grid -->
+        <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Skeleton Loaders -->
+            <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm animate-skeleton">
+                <div class="h-48 bg-slate-200 rounded-xl mb-4"></div>
+                <div class="h-5 bg-slate-200 rounded w-3/4 mb-2"></div>
+                <div class="h-4 bg-slate-100 rounded w-1/2 mb-4"></div>
+                <div class="h-10 bg-slate-200 rounded-xl"></div>
+            </div>
+            <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm animate-skeleton">
+                <div class="h-48 bg-slate-200 rounded-xl mb-4"></div>
+                <div class="h-5 bg-slate-200 rounded w-3/4 mb-2"></div>
+                <div class="h-4 bg-slate-100 rounded w-1/2 mb-4"></div>
+                <div class="h-10 bg-slate-200 rounded-xl"></div>
             </div>
         </div>
     </main>
 
-    <!-- Savatcha Modal oynasi -->
-    <div id="cart-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end hidden">
-        <div class="bg-white w-full max-w-md h-full p-6 flex flex-col justify-between shadow-xl animate-slide-in">
-            <div>
-                <div class="flex justify-between items-center border-b pb-4 mb-4">
-                    <h2 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-shopping-bag text-blue-600"></i> Savatchangiz</h2>
-                    <button onclick="toggleCart()" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
-                </div>
-                
-                <!-- Tanlangan mahsulotlar -->
-                <div id="cart-items" class="space-y-4 overflow-y-auto max-h-[50vh] pr-2">
-                    <p class="text-gray-500 text-center py-8">Savatchangiz hozircha bo'sh.</p>
-                </div>
-            </div>
+    <!-- Slide-over Drawer Cart (Savatcha Panel) -->
+    <div id="cart-drawer" class="fixed inset-0 z-50 pointer-events-none transition-opacity duration-300 opacity-0">
+        <!-- Backdrop -->
+        <div id="cart-backdrop" onclick="toggleCart(false)" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300"></div>
 
-            <!-- Buyurtma berish formasi -->
-            <div class="border-t pt-4 bg-white">
-                <div class="flex justify-between font-bold text-lg mb-4 text-gray-800">
-                    <span>Umumiy jami:</span>
-                    <span id="cart-total">0 so'm</span>
-                </div>
-                
-                <form id="checkout-form" onsubmit="sendOrder(event)" class="space-y-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Ismingiz *</label>
-                        <input type="text" id="client-name" required class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Masalan: Karimjon">
+        <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+            <div id="cart-panel" class="w-screen max-w-md bg-white shadow-2xl flex flex-col transform translate-x-full transition duration-300 pointer-events-auto">
+                <!-- Drawer Header -->
+                <div class="p-6 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900">Sizning savatchangiz</h3>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Telefon raqamingiz *</label>
-                        <input type="tel" id="client-phone" required class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="+998 90 123 45 67">
-                    </div>
-                    <button type="submit" id="submit-btn" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2">
-                        <i class="fab fa-telegram shadow-sm"></i> Telegram orqali buyurtma berish
+                    <button onclick="toggleCart(false)" class="w-8 h-8 rounded-full bg-slate-200/60 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+                        <i class="fas fa-xmark"></i>
                     </button>
-                </form>
+                </div>
+
+                <!-- Cart Items List -->
+                <div id="cart-items" class="flex-1 overflow-y-auto p-6 space-y-4">
+                    <!-- Dynamic Cart Items -->
+                </div>
+
+                <!-- Drawer Footer -->
+                <div class="p-6 bg-slate-50 border-t border-slate-200 space-y-4">
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm text-slate-500">
+                            <span>Jami mahsulotlar:</span>
+                            <span id="cart-items-count" class="font-semibold text-slate-800">0 ta</span>
+                        </div>
+                        <div class="flex justify-between text-base font-bold text-slate-900 pt-2 border-t border-slate-200">
+                            <span>Umumiy summa:</span>
+                            <span id="cart-total-modal" class="text-brand-600">0 so'm</span>
+                        </div>
+                    </div>
+
+                    <!-- User Information Form -->
+                    <div class="space-y-3 pt-2">
+                        <input type="text" id="customer-name" placeholder="Ismingiz" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-brand-500">
+                        <input type="tel" id="customer-phone" placeholder="Telefon raqamingiz (+998...)" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <button onclick="checkout()" class="w-full bg-gradient-to-r from-brand-600 to-cyan-600 hover:from-brand-700 hover:to-cyan-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-brand-500/25 transition flex items-center justify-center gap-2">
+                        <i class="fab fa-telegram"></i> Telegram Orqali Buyurtma Berish
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-   
-   <!-- JavaScript Logika -->
-    <script>
-        const BOT_TOKEN = "8667051988:AAEcPNAYG2rEDp6IKyomGkVxE2Wmr8jeuok";
-        const CHAT_ID = "7782825299";
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-8 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs">
+            <p>© 2026 IDEAL AQUA LLC. Barcha huquqlar himoyalangan.</p>
+            <div class="flex items-center gap-6">
+                <a href="/admin/" class="hover:text-white transition"><i class="fas fa-lock text-[10px] mr-1"></i> Admin Panel</a>
+            </div>
+        </div>
+    </footer>
 
+    <!-- Logic Script -->
+    <script>
+        let allProducts = [];
         let cart = [];
 
-// GitHub API'siz, 403 va Sintaksis xatosisiz ishlaydigan xavfsiz yuklash
+        // Load Products
         async function loadProducts() {
             const grid = document.getElementById('products-grid');
             try {
                 const t = new Date().getTime();
-                
-                // 1. Dastlab data/products.json indeksini o'qiymiz
                 const res = await fetch(`/data/products.json?v=${t}`);
+                
                 if (!res.ok) {
-                    grid.innerHTML = '<p class="text-gray-500 text-center col-span-full py-8">Hozircha mahsulotlar mavjud emas.</p>';
+                    renderEmptyGrid();
                     return;
                 }
 
                 const fileNames = await res.json();
-
                 if (!Array.isArray(fileNames) || fileNames.length === 0) {
-                    grid.innerHTML = '<p class="text-gray-500 text-center col-span-full py-8">Hozircha mahsulotlar mavjud emas.</p>';
+                    renderEmptyGrid();
                     return;
                 }
 
-                // 2. Har bir mahsulot faylini keshsiz yuklaymiz
                 const productPromises = fileNames.map(fileName => 
                     fetch(`/data/products/${fileName}?v=${t}`)
                         .then(r => r.ok ? r.json() : null)
                         .catch(() => null)
                 );
                 
-                const products = (await Promise.all(productPromises)).filter(p => p !== null);
+                allProducts = (await Promise.all(productPromises)).filter(p => p !== null);
+                renderProducts(allProducts);
 
-                if (products.length > 0) {
-                    grid.innerHTML = '';
-                    products.forEach(product => {
-                        const imgHtml = product.image 
-                            ? `<img src="${product.image}" alt="${product.title}" class="h-48 w-full object-cover">`
-                            : `<div class="h-48 bg-blue-100 flex items-center justify-center"><i class="fas fa-box text-blue-500 text-6xl"></i></div>`;
-                        
-                        grid.innerHTML += `
-                            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition">
-                                ${imgHtml}
-                                <div class="p-5">
-                                    <h3 class="font-bold text-lg mb-2">${product.title || 'Nomsiz mahsulot'}</h3>
-                                    <p class="text-gray-500 text-sm mb-4">${product.body || ''}</p>
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-blue-600 font-bold text-xl">${Number(product.price || 0).toLocaleString()} so'm</span>
-                                        <button onclick="addToCart('${(product.title || '').replace(/'/g, "\\'")}', ${product.price || 0})" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition">
-                                            Savatchaga qo'shish
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    });
-                } else {
-                    grid.innerHTML = '<p class="text-gray-500 text-center col-span-full py-8">Hozircha mahsulotlar mavjud emas.</p>';
-                }
             } catch (err) {
                 console.log("Yuklashda xatolik:", err);
+                renderEmptyGrid();
             }
         }
 
-        document.addEventListener('DOMContentLoaded', loadProducts);
-        
-        // Sahifa yuklanganda mahsulotlarni tortib olish
-        document.addEventListener('DOMContentLoaded', loadProducts);
-
-        function toggleCart() {
-            const modal = document.getElementById('cart-modal');
-            modal.classList.toggle('hidden');
-            renderCart();
-        }
-
-        function addToCart(name, price) {
-            const existingItem = cart.find(item => item.name === name);
-            if (existingItem) {
-                existingItem.quantity += 1;
-            } else {
-                cart.push({ name, price, quantity: 1 });
-            }
-            updateCartCount();
-            alert(`${name} savatchaga qo'shildi!`);
-        }
-
-        function updateCartCount() {
-            const countEl = document.getElementById('cart-count');
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            if (totalItems > 0) {
-                countEl.innerText = totalItems;
-                countEl.classList.remove('hidden');
-            } else {
-                countEl.classList.add('hidden');
-            }
-        }
-
-        function changeQuantity(name, amount) {
-            const item = cart.find(item => item.name === name);
-            if (item) {
-                item.quantity += amount;
-                if (item.quantity <= 0) {
-                    cart = cart.filter(i => i.name !== name);
-                }
-            }
-            updateCartCount();
-            renderCart();
-        }
-
-        function renderCart() {
-            const container = document.getElementById('cart-items');
-            const totalEl = document.getElementById('cart-total');
+        function renderProducts(products) {
+            const grid = document.getElementById('products-grid');
+            const countLabel = document.getElementById('product-count');
             
-            if (cart.length === 0) {
-                container.innerHTML = '<p class="text-gray-500 text-center py-8">Savatchangiz hozircha bo\'sh.</p>';
-                totalEl.innerText = "0 so'm";
+            countLabel.textContent = `${products.length} ta mahsulot`;
+            
+            if (products.length === 0) {
+                renderEmptyGrid();
                 return;
             }
 
-            let html = '';
-            let total = 0;
+            grid.innerHTML = '';
+            products.forEach(product => {
+                const imgHtml = product.image 
+                    ? `<img src="${product.image}" alt="${product.title}" class="h-52 w-full object-cover group-hover:scale-105 transition duration-300">`
+                    : `<div class="h-52 bg-gradient-to-br from-brand-50 to-sky-100 flex items-center justify-center text-brand-500"><i class="fas fa-box-open text-5xl opacity-60"></i></div>`;
+                
+                const safeTitle = (product.title || 'Nomsiz').replace(/'/g, "\\'");
 
-            cart.forEach(item => {
-                const itemTotal = item.price * item.quantity;
-                total += itemTotal;
-                html += `
-                    <div class="flex justify-between items-center border-b pb-3 border-gray-100">
+                grid.innerHTML += `
+                    <div class="group bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 overflow-hidden flex flex-col justify-between">
                         <div>
-                            <h4 class="font-semibold text-sm">${item.name}</h4>
-                            <p class="text-gray-500 text-xs">${item.price.toLocaleString()} so'm</p>
+                            <div class="relative overflow-hidden bg-slate-100">
+                                ${imgHtml}
+                            </div>
+                            <div class="p-5">
+                                <h3 class="font-bold text-slate-800 text-base mb-1.5 line-clamp-1 group-hover:text-brand-600 transition">${product.title || 'Nomsiz mahsulot'}</h3>
+                                <p class="text-slate-500 text-xs line-clamp-2 mb-4 leading-relaxed">${product.body || 'Batafsil ma'lumot berilmagan.'}</p>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="changeQuantity('${item.name.replace(/'/g, "\\'")}', -1)" class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-sm hover:bg-gray-200">-</button>
-                            <span class="text-sm font-bold">${item.quantity}</span>
-                            <button onclick="changeQuantity('${item.name.replace(/'/g, "\\'")}', 1)" class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-sm hover:bg-gray-200">+</button>
+                        <div class="p-5 pt-0 flex items-center justify-between gap-2">
+                            <div>
+                                <span class="text-[10px] text-slate-400 block font-semibold">NARXI</span>
+                                <span class="text-brand-700 font-extrabold text-lg">${Number(product.price || 0).toLocaleString()} <span class="text-xs">so'm</span></span>
+                            </div>
+                            <button onclick="addToCart('${safeTitle}', ${product.price || 0})" 
+                                    class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-xl font-semibold text-xs transition duration-200 shadow-md shadow-brand-500/20 active:scale-95 flex items-center gap-1.5">
+                                <i class="fas fa-plus"></i> Qo'shish
+                            </button>
                         </div>
                     </div>
                 `;
             });
-
-            container.innerHTML = html;
-            totalEl.innerText = total.toLocaleString() + " so'm";
         }
 
-        async function sendOrder(event) {
-            event.preventDefault();
+        function renderEmptyGrid() {
+            const grid = document.getElementById('products-grid');
+            document.getElementById('product-count').textContent = '0 ta mahsulot';
+            grid.innerHTML = `
+                <div class="col-span-full py-16 text-center bg-white rounded-2xl border border-dashed border-slate-200">
+                    <i class="fas fa-boxes-packing text-4xl text-slate-300 mb-3"></i>
+                    <p class="text-slate-500 font-medium">Hozircha hech qanday mahsulot topilmadi.</p>
+                </div>
+            `;
+        }
+
+        // Search Filters
+        function filterProducts() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = allProducts.filter(p => (p.title || '').toLowerCase().includes(query) || (p.body || '').toLowerCase().includes(query));
+            renderProducts(filtered);
+        }
+
+        function filterProductsMobile() {
+            const query = document.getElementById('search-input-mobile').value.toLowerCase();
+            const filtered = allProducts.filter(p => (p.title || '').toLowerCase().includes(query) || (p.body || '').toLowerCase().includes(query));
+            renderProducts(filtered);
+        }
+
+        // Cart Actions
+        function addToCart(title, price) {
+            const existing = cart.find(item => item.title === title);
+            if (existing) {
+                existing.qty++;
+            } else {
+                cart.push({ title, price, qty: 1 });
+            }
+            updateCartUI();
+            toggleCart(true);
+        }
+
+        function updateCartUI() {
+            const cartBadge = document.getElementById('cart-badge');
+            const cartTotalHeader = document.getElementById('cart-total-header');
+            const cartTotalModal = document.getElementById('cart-total-modal');
+            const cartItemsCount = document.getElementById('cart-items-count');
+            const cartItems = document.getElementById('cart-items');
+
+            const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+            const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+            cartBadge.textContent = totalQty;
+            cartBadge.classList.toggle('hidden', totalQty === 0);
+            
+            cartTotalHeader.textContent = `${totalPrice.toLocaleString()} so'm`;
+            cartTotalModal.textContent = `${totalPrice.toLocaleString()} so'm`;
+            cartItemsCount.textContent = `${totalQty} ta`;
+
             if (cart.length === 0) {
-                alert("Savatchangiz bo'sh! Iltimos, mahsulot qo'shing.");
+                cartItems.innerHTML = `
+                    <div class="text-center py-12 text-slate-400">
+                        <i class="fas fa-basket-shopping text-4xl mb-3 opacity-40"></i>
+                        <p class="text-sm">Savatchangiz hozircha bo'sh</p>
+                    </div>
+                `;
                 return;
             }
 
-            const name = document.getElementById('client-name').value;
-            const phone = document.getElementById('client-phone').value;
-            const submitBtn = document.getElementById('submit-btn');
-
-            submitBtn.disabled = true;
-            submitBtn.innerText = "Yuborilmoqda...";
-
-            let message = `📦 <b>YANGI BUYURTMA KELDI!</b>\n\n`;
-            message += `👤 <b>Mijoz:</b> ${name}\n`;
-            message += `📞 <b>Telefon:</b> ${phone}\n\n`;
-            message += `🛒 <b>Mahsulotlar:</b>\n`;
-            
-            let total = 0;
+            cartItems.innerHTML = '';
             cart.forEach((item, index) => {
-                const cost = item.price * item.quantity;
-                total += cost;
-                message += `${index + 1}. ${item.name} — ${item.quantity} dona (${cost.toLocaleString()} so'm)\n`;
+                cartItems.innerHTML += `
+                    <div class="flex items-center justify-between gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <div class="flex-1">
+                            <h4 class="font-bold text-slate-800 text-sm leading-snug">${item.title}</h4>
+                            <span class="text-xs text-brand-600 font-semibold">${Number(item.price).toLocaleString()} so'm</span>
+                        </div>
+                        <div class="flex items-center gap-2 bg-white px-2 py-1 rounded-lg border border-slate-200">
+                            <button onclick="changeQty(${index}, -1)" class="text-slate-400 hover:text-slate-700 px-1.5"><i class="fas fa-minus text-xs"></i></button>
+                            <span class="text-xs font-bold w-4 text-center">${item.qty}</span>
+                            <button onclick="changeQty(${index}, 1)" class="text-slate-400 hover:text-slate-700 px-1.5"><i class="fas fa-plus text-xs"></i></button>
+                        </div>
+                    </div>
+                `;
             });
+        }
 
-            message += `\n💰 <b>Jami summa:</b> ${total.toLocaleString()} so'm`;
+        function changeQty(index, delta) {
+            cart[index].qty += delta;
+            if (cart[index].qty <= 0) {
+                cart.splice(index, 1);
+            }
+            updateCartUI();
+        }
 
-            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+        function toggleCart(open) {
+            const drawer = document.getElementById('cart-drawer');
+            const panel = document.getElementById('cart-panel');
             
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: CHAT_ID,
-                        text: message,
-                        parse_mode: 'HTML'
-                    })
-                });
-
-                if (response.ok) {
-                    alert("Rahmat! Buyurtmangiz qabul qilindi, tez orada siz bilan bog'lanamiz.");
-                    cart = [];
-                    updateCartCount();
-                    toggleCart();
-                    document.getElementById('checkout-form').reset();
-                } else {
-                    alert("Xatolik yuz berdi. Iltimos qaytadan urinib ko'ring.");
-                }
-            } catch (error) {
-                alert("Tarmoqda xatolik! Internetni tekshiring.");
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerText = "Telegram orqali buyurtma berish";
+            if (open) {
+                drawer.classList.remove('pointer-events-none', 'opacity-0');
+                drawer.classList.add('opacity-100');
+                panel.classList.remove('translate-x-full');
+            } else {
+                drawer.classList.add('opacity-0');
+                panel.classList.add('translate-x-full');
+                setTimeout(() => {
+                    drawer.classList.add('pointer-events-none');
+                }, 300);
             }
         }
+
+        function checkout() {
+            if (cart.length === 0) {
+                alert("Savatchangiz bo'sh!");
+                return;
+            }
+            
+            const name = document.getElementById('customer-name').value.trim();
+            const phone = document.getElementById('customer-phone').value.trim();
+
+            if (!name || !phone) {
+                alert("Iltimos, ismingiz va telefon raqamingizni kiriting!");
+                return;
+            }
+
+            let msg = `🛒 *YANGI BUYURTMA (IDEAL AQUA)*\n\n`;
+            msg += `👤 *Mijoz:* ${name}\n`;
+            msg += `📞 *Tel:* ${phone}\n\n`;
+            msg += `📦 *Mahsulotlar:*\n`;
+
+            let total = 0;
+            cart.forEach((item, i) => {
+                const sum = item.price * item.qty;
+                total += sum;
+                msg += `${i + 1}. ${item.title} — ${item.qty} ta x ${item.price.toLocaleString()} = ${sum.toLocaleString()} so'm\n`;
+            });
+
+            msg += `\n💰 *Jami summa:* ${total.toLocaleString()} so'm`;
+
+            // Telegram orqali yuborish
+            const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(msg)}`;
+            window.open(telegramUrl, '_blank');
+        }
+
+        document.addEventListener('DOMContentLoaded', loadProducts);
     </script>
 </body>
 </html>
