@@ -7,19 +7,15 @@ media_folder: "images/uploads"
 public_folder: "/images/uploads"
 
 collections:
-  - name: "shop_data"
-    label: "Do'kon Boshqaruvi"
-    files:
-      - name: "products_list"
-        label: "Mahsulotlar Ro'yxati"
-        file: "data/products.json"
-        fields:
-          - name: "items"
-            label: "Mahsulotlar"
-            widget: "list"
-            summary: "{{fields.title}} - {{fields.price}} so'm"
-            fields:
-              - { label: "Mahsulot Nomi", name: "title", widget: "string" }
-              - { label: "Narxi (so'm)", name: "price", widget: "number", value_type: "int" }
-              - { label: "Rasm", name: "image", widget: "image", required: false }
-              - { label: "Batafsil ma'lumot", name: "body", widget: "text", required: false }
+  - name: "products"
+    label: "Mahsulotlar"
+    folder: "data/products"
+    extension: "json"
+    format: "json"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Mahsulot Nomi", name: "title", widget: "string" }
+      - { label: "Narxi (so'm)", name: "price", widget: "number", value_type: "int" }
+      - { label: "Rasm", name: "image", widget: "image", required: false }
+      - { label: "Batafsil ma'lumot", name: "body", widget: "text", required: false }
