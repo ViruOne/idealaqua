@@ -10,6 +10,8 @@ collections:
   - name: "products"
     label: "Mahsulotlar"
     folder: "data/products"
+    extension: "json"
+    format: "json"
     create: true
     slug: "{{slug}}"
     fields:
