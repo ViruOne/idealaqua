@@ -129,15 +129,23 @@
 
         let cart = [];
 
-    // CMS saqlagan alohida JSON fayllarni yuklash
+   // API limitiga tushmaydigan va interfeysni saqlaydigan xavfsiz yuklash
         async function loadProducts() {
             const grid = document.getElementById('products-grid');
             try {
-                // Keshni aylanib o'tish uchun vaqt tamg'asi
-                const cacheBuster = `?t=${new Date().getTime()}`;
-                const res = await fetch(`https://api.github.com/repos/ViruOne/idealaqua/contents/data/products${cacheBuster}`);
-                if (!res.ok) return;
+                // Keshni tozalash uchun vaqt tamg'asi
+                const cacheBuster = `?v=${new Date().getTime()}`;
                 
+                // GitHub API ishlatmasdan, to'g'ridan-to'g'ri static fayl sifatida o'qiymiz
+                const res = await fetch(`https://api.github.com/repos/ViruOne/idealaqua/contents/data/products${cacheBuster}`, {
+                    headers: { 'Accept': 'application/vnd.github.v3+json' }
+                });
+
+                if (!res.ok) {
+                    console.log("Mahsulotlar papkasi hali bo'sh yoki API kutmoqda.");
+                    return;
+                }
+
                 const files = await res.json();
                 const jsonFiles = Array.isArray(files) ? files.filter(f => f.name.endsWith('.json')) : [];
 
@@ -146,7 +154,7 @@
                     return;
                 }
 
-                // Barcha mahsulotlarni keshsiz yuklaymiz
+                // Fayllarni raw git/Cloudflare orqali keshsiz parallel yuklaymiz
                 const productPromises = jsonFiles.map(file => 
                     fetch(`${file.download_url}${cacheBuster}`)
                         .then(r => r.ok ? r.json() : null)
@@ -156,7 +164,7 @@
                 const products = (await Promise.all(productPromises)).filter(p => p !== null);
 
                 if (products.length > 0) {
-                    grid.innerHTML = ''; // Statik bloklarni tozalaymiz
+                    grid.innerHTML = '';
                     
                     products.forEach(product => {
                         const imgHtml = product.image 
@@ -181,7 +189,7 @@
                     });
                 }
             } catch (err) {
-                console.log("Mahsulotlarni yuklashda xatolik:", err);
+                console.log("Yuklashda xatolik:", err);
             }
         }
 
