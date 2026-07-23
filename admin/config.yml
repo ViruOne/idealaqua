@@ -9,8 +9,8 @@ public_folder: "/images/uploads"
 collections:
   - name: "products"
     label: "Mahsulotlar"
-    folder: "public/data/products"
-    json_backlink: "public/data/products.json"
+    folder: "data/products"
+    json_backlink: "data/products.json"
     create: true
     slug: "{{slug}}"
     extension: "json"
