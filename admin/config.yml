@@ -2,22 +2,22 @@ backend:
   name: github
   repo: ViruOne/idealaqua
   branch: main
-  
+
 media_folder: "public/images/uploads"
 public_folder: "/images/uploads"
 
 collections:
   - name: "products"
     label: "Mahsulotlar"
-    file: "public/products.json" # Hamma mahsulot bitta joyga tushadi
-    label_singular: "Mahsulot"
+    folder: "public/data/products" # Bu majburiy qator!
+    json_backlink: "public/data/products.json"
+    create: true
+    slug: "{{slug}}"
+    extension: "json"
+    format: "json"
     fields:
-      - name: "items"
-        label: "Mahsulotlar ro'yxati"
-        widget: "list"
-        fields:
-          - { label: "Nomi", name: "title", widget: "string" }
-          - { label: "Kategoriya", name: "category", widget: "string" }
-          - { label: "Narxi (so'm)", name: "price", widget: "number", value_type: "int" }
-          - { label: "Rasm URL", name: "image", widget: "image", required: false }
-          - { label: "Tavsif", name: "body", widget: "text", required: false }
+      - { label: "Nomi", name: "title", widget: "string" }
+      - { label: "Kategoriya", name: "category", widget: "string" }
+      - { label: "Narxi (so'm)", name: "price", widget: "number", value_type: "int" }
+      - { label: "Rasm", name: "image", widget: "image", required: false }
+      - { label: "Tavsif", name: "body", widget: "text", required: false }
