@@ -7,19 +7,18 @@
     <!-- Netlify Identity vidjeti -->
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
     <script>
-      // Netlify Identity'ni CMS yuklanishidan oldin majburiy ishga tushiramiz va asosiy domenga ulaymiz
+      // Netlify bergan haqiqiy API manzilini aynan ulaymiz:
       if (window.netlifyIdentity) {
         window.netlifyIdentity.init({
-          APIUrl: 'https://shop.idealaqua.uz/.netlify/identity'
+          APIUrl: 'https://relaxed-bienenstitch-7df677.netlify.app/.netlify/identity'
         });
       }
     </script>
   </head>
   <body>
-    <!-- Decap CMS skriptini yuklash -->
+    <!-- Decap CMS skripti -->
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
     <script>
-      // Kirish muvaffaqiyatli bo'lganda /admin/ sahifasiga qayta yo'naltirish
       if (window.netlifyIdentity) {
         window.netlifyIdentity.on("init", user => {
           if (!user) {
