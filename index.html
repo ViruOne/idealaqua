@@ -129,13 +129,13 @@
 
         let cart = [];
 
-// GitHub API'siz, 403 xatosisiz to'g'ridan-to'g'ri va tezkor yuklash
+// GitHub API'siz, 403 va Sintaksis xatosisiz ishlaydigan xavfsiz yuklash
         async function loadProducts() {
             const grid = document.getElementById('products-grid');
             try {
                 const t = new Date().getTime();
                 
-                // 1. Dastlab data/products.json indeksini o'qiymiz (Cloudflare'dan to'g'ridan-to'g'ri)
+                // 1. Dastlab data/products.json indeksini o'qiymiz
                 const res = await fetch(`/data/products.json?v=${t}`);
                 if (!res.ok) {
                     grid.innerHTML = '<p class="text-gray-500 text-center col-span-full py-8">Hozircha mahsulotlar mavjud emas.</p>';
@@ -145,11 +145,11 @@
                 const fileNames = await res.json();
 
                 if (!Array.isArray(fileNames) || fileNames.length === 0) {
-                    grid.innerHTML = '<p class="text-gray-500 text-center col-span-full py-8">Hozircha mahsulotlar mavjud me'da.</p>';
+                    grid.innerHTML = '<p class="text-gray-500 text-center col-span-full py-8">Hozircha mahsulotlar mavjud emas.</p>';
                     return;
                 }
 
-                // 2. Har bir mahsulot faylini o'zingizning domeningizdan (keshsiz) yuklaymiz
+                // 2. Har bir mahsulot faylini keshsiz yuklaymiz
                 const productPromises = fileNames.map(fileName => 
                     fetch(`/data/products/${fileName}?v=${t}`)
                         .then(r => r.ok ? r.json() : null)
