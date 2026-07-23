@@ -172,7 +172,7 @@
         const t = new Date().getTime();
         let loadedItems = [];
 
-        // 1. Sveltia CMS yaratgan indeks faylini o'qiymiz (/data/products.json)
+        // 1. Sveltia CMS indeks faylini o'qiymiz (/data/products.json)
         const indexRes = await fetch(`/data/products.json?v=${t}`);
         
         if (indexRes.ok) {
@@ -194,6 +194,26 @@
                 }
             }
         }
+
+        // 2. AYNAN SHU YERDA: Nom va ma'lumotlarni to'g'ri biriktirish (p.title birinchi o'rinda)
+        allProducts = loadedItems.map((p, index) => ({
+            id: p.id || `prod_${index}`,
+            name: p.title || p.name || "Nomsiz mahsulot",
+            category: p.category || "Barchasi",
+            price: p.price || 0,
+            image: p.image || "",
+            description: p.body || p.description || ""
+        }));
+
+        renderCategories();
+        filterProducts();
+
+    } catch (e) {
+        console.error("Yuklash xatosi:", e);
+        renderCategories();
+        renderEmpty("Mahsulotlarni yuklashda xatolik yuz berdi.");
+    }
+}
 
         // 2. Maydonlarni bir xil ko'rinishga keltirish
         allProducts = loadedItems.map((p, index) => ({
