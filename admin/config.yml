@@ -7,19 +7,13 @@ media_folder: "images/uploads"
 public_folder: "/images/uploads"
 
 collections:
-  - name: "products_collection"
-    label: "Mahsulotlar Boshqaruvi"
-    files:
-      - name: "products_file"
-        label: "Mahsulotlar Ro'yxati"
-        file: "data/products.json"
-        fields:
-          - name: "products"
-            label: "Mahsulotlar"
-            widget: "list"
-            fields:
-              - { label: "ID", name: "id", widget: "string" }
-              - { label: "Mahsulot Nomi", name: "title", widget: "string" }
-              - { label: "Narxi (so'm)", name: "price", widget: "number", value_type: "int" }
-              - { label: "Rasm", name: "image", widget: "image", required: false }
-              - { label: "Batafsil ma'lumot", name: "body", widget: "string", required: false }
+  - name: "products"
+    label: "Mahsulotlar"
+    folder: "data/products"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Mahsulot Nomi", name: "title", widget: "string" }
+      - { label: "Narxi (so'm)", name: "price", widget: "number", value_type: "int" }
+      - { label: "Rasm", name: "image", widget: "image", required: false }
+      - { label: "Batafsil ma'lumot", name: "body", widget: "text", required: false }
