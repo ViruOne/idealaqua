@@ -2,8 +2,7 @@ backend:
   name: github
   repo: ViruOne/idealaqua
   branch: main
-  base_url: https://api.netlify.com
-  site_domain: relaxed-bienenstitch-7df677.netlify.app
+  auth_type: implicit # Server va Netlify'siz to'g'ridan-to'g'ri GitHub login
 
 media_folder: "images/uploads"
 public_folder: "/images/uploads"
