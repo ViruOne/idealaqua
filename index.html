@@ -159,347 +159,369 @@
         </div>
     </div>
 
-    <script>
-        const BOT_TOKEN = "YOUR_BOT_TOKEN"; 
-        const CHAT_ID = "YOUR_CHAT_ID";     
+  <script>
+    const BOT_TOKEN = "YOUR_BOT_TOKEN"; 
+    const CHAT_ID = "YOUR_CHAT_ID";     
 
-        let allProducts = [];
-        let cart = [];
-        let currentCategory = 'all';
+    let allProducts = [];
+    let cart = [];
+    let currentCategory = 'all';
 
-        async function loadProducts() {
-            const grid = document.getElementById('products-grid');
-            try {
-                const t = new Date().getTime();
-                const res = await fetch(`/data/products.json?v=${t}`);
-                
-                if (!res.ok) throw new Error("products.json fayli topilmadi");
-                
-                const fileNames = await res.json();
-                
-                if (!Array.isArray(fileNames) || fileNames.length === 0) {
-                    return renderEmpty("Hozircha mahsulotlar kiritilmagan.");
-                }
-
-                const promises = fileNames.map(f => 
-                    fetch(`/data/products/${f}?v=${t}`)
-                        .then(r => r.ok ? r.json() : null)
-                        .catch(() => null)
-                );
-                
-                const rawProducts = await Promise.all(promises);
-                allProducts = rawProducts.filter(p => p !== null && typeof p === 'object');
-                
+    async function loadProducts() {
+        const grid = document.getElementById('products-grid');
+        try {
+            const t = new Date().getTime();
+            
+            // 1. Asosiy ro'yxatni yuklash
+            const res = await fetch(`/data/products.json?v=${t}`);
+            if (!res.ok) throw new Error("products.json fayli topilmadi");
+            
+            const fileNames = await res.json();
+            
+            // Agar products.json massiv bo'lmasa yoki bo'sh bo'lsa
+            if (!Array.isArray(fileNames) || fileNames.length === 0) {
                 renderCategories();
-                filterProducts();
-            } catch (e) {
-                console.error("Yuklash xatosi:", e);
-                renderEmpty("Mahsulotlarni yuklashda xatolik yuz berdi.");
+                return renderEmpty("Hozircha mahsulotlar kiritilmagan.");
             }
-        }
 
-        // KATEGORIYALARNI DINAMIK GENERATSIYA QILISH
-        function renderCategories() {
-            const catNav = document.getElementById('categories-list');
-            if (!catNav) return;
-
-            // Barcha mavjud kategoriyalarni yig'ish va nechtaligini sanash
-            const counts = {};
-            allProducts.forEach(p => {
-                const cat = p.category ? p.category.trim() : 'Boshqa';
-                counts[cat] = (counts[cat] || 0) + 1;
+            // 2. Har bir mahsulot JSON faylini o'qish
+            const promises = fileNames.map(async (f) => {
+                try {
+                    // Agar f ob'ekt bo'lib kelgan bo'lsa (ba'zi CMS larda shunday bo'ladi)
+                    if (typeof f === 'object' && f !== null) return f;
+                    
+                    const pRes = await fetch(`/data/products/${f}?v=${t}`);
+                    if (pRes.ok) return await pRes.json();
+                } catch (e) {
+                    console.warn(`Fayl o'qishda xato: ${f}`, e);
+                }
+                return null;
             });
+            
+            const rawProducts = await Promise.all(promises);
+            
+            // Yaroqli mahsulotlarni saralab olish
+            allProducts = rawProducts.filter(p => p !== null && typeof p === 'object');
+            
+            // Kategoriyalarni ekranga chiqarish va mahsulotlarni filtrlash
+            renderCategories();
+            filterProducts();
 
-            // HTML tayyorlash ("Barchasi" tugmasini saqlab qolgan holda)
-            let html = `
-                <button onclick="selectCategory('all')" id="cat-btn-all" 
-                        class="cat-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition text-left ${currentCategory === 'all' ? 'bg-aqua-500/10 text-aqua-400 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-900'}">
-                    <span><i class="fas fa-border-all mr-2 opacity-70"></i> Barchasi</span>
-                    <span id="count-all" class="text-xs px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">${allProducts.length}</span>
+        } catch (e) {
+            console.error("Yuklash xatosi:", e);
+            renderCategories();
+            renderEmpty("Mahsulotlar yuklanishida xatolik bo'ldi yoki bazada mahsulot yo'q.");
+        }
+    }
+
+    // KATEGORIYALARNI UCHRA SHARTDA HAM ANQLASH VA CHIQARISH
+    function renderCategories() {
+        const catNav = document.getElementById('categories-list');
+        if (!catNav) return;
+
+        const counts = {};
+        
+        allProducts.forEach(p => {
+            // CMS'dan category yoki kategoriya kaliti kelishini tekshiramiz
+            let rawCat = p.category || p.kategoriya || 'Boshqa';
+            
+            // Bo'sh satr bo'lsa "Boshqa" deb olamiz
+            if (typeof rawCat === 'string') {
+                rawCat = rawCat.trim();
+            }
+            if (!rawCat) rawCat = 'Boshqa';
+
+            counts[rawCat] = (counts[rawCat] || 0) + 1;
+        });
+
+        // "Barchasi" tugmasi
+        let html = `
+            <button onclick="selectCategory('all')" id="cat-btn-all" 
+                    class="cat-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition text-left ${currentCategory === 'all' ? 'bg-aqua-500/10 text-aqua-400 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-900'}">
+                <span><i class="fas fa-border-all mr-2 opacity-70"></i> Barchasi</span>
+                <span id="count-all" class="text-xs px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">${allProducts.length}</span>
+            </button>
+        `;
+
+        // Har bir kategoriya uchun tugma hosil qilish
+        Object.keys(counts).forEach(cat => {
+            const isActive = currentCategory === cat;
+            const activeClasses = isActive 
+                ? 'bg-aqua-500/10 text-aqua-400 font-semibold' 
+                : 'text-slate-400 hover:text-white hover:bg-slate-900';
+            
+            html += `
+                <button onclick="selectCategory('${cat.replace(/'/g, "\\'")}')" 
+                        class="cat-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition text-left ${activeClasses}">
+                    <span class="truncate"><i class="fas fa-folder mr-2 opacity-70"></i> ${cat}</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">${counts[cat]}</span>
                 </button>
             `;
+        });
 
-            Object.keys(counts).forEach(cat => {
-                const isActive = currentCategory === cat;
-                const activeClasses = isActive ? 'bg-aqua-500/10 text-aqua-400 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-900';
-                
-                html += `
-                    <button onclick="selectCategory('${cat}')" 
-                            class="cat-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition text-left ${activeClasses}">
-                        <span class="truncate"><i class="fas fa-folder mr-2 opacity-70"></i> ${cat}</span>
-                        <span class="text-xs px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">${counts[cat]}</span>
-                    </button>
-                `;
-            });
+        catNav.innerHTML = html;
+    }
 
-            catNav.innerHTML = html;
+    function selectCategory(cat) {
+        currentCategory = cat;
+        renderCategories(); 
+        filterProducts();   
+    }
+
+    function renderProducts(products) {
+        const grid = document.getElementById('products-grid');
+        if (!grid) return;
+
+        if (!products || products.length === 0) {
+            return renderEmpty("Ushbu kategoriyada mahsulotlar topilmadi.");
         }
 
-        // KATEGORIYANI TANLASH
-        function selectCategory(cat) {
-            currentCategory = cat;
-            renderCategories(); // Tugmalar faollik holatini yangilaydi
-            filterProducts();   // Mahsulotlarni saralaydi
-        }
+        grid.innerHTML = '';
+        products.forEach((p) => {
+            const title = p.title || p.nomi || 'Nomsiz Mahsulot';
+            const body = p.body || p.tavsif || '';
+            const price = Number(p.price || p.narxi) || 0;
+            const category = p.category || p.kategoriya || 'Boshqa';
+            
+            const realIndex = allProducts.findIndex(item => (item.title || item.nomi) === title);
 
-        // MAHSULOTLARNI EKTRANGA CHIQARISH
-        function renderProducts(products) {
-            const grid = document.getElementById('products-grid');
-            if (!grid) return;
+            const img = p.image 
+                ? `<img src="${p.image}" class="h-48 w-full object-cover group-hover:scale-105 transition duration-500" alt="${title}">`
+                : `<div class="h-48 w-full bg-slate-900 flex items-center justify-center text-slate-700 group-hover:text-aqua-500 transition duration-300"><i class="fas fa-box text-5xl"></i></div>`;
 
-            if (!products || products.length === 0) {
-                return renderEmpty("Ushbu bo'limda mahsulotlar topilmadi.");
-            }
-
-            grid.innerHTML = '';
-            products.forEach((p, index) => {
-                const title = p.title || 'Nomsiz Mahsulot';
-                const body = p.body || '';
-                const price = Number(p.price) || 0;
-                
-                // Mahsulot indeksini topish (Savatga to'g'ri qo'shilishi uchun)
-                const realIndex = allProducts.findIndex(item => item.title === title);
-
-                const img = p.image 
-                    ? `<img src="${p.image}" class="h-48 w-full object-cover group-hover:scale-105 transition duration-500" alt="${title}">`
-                    : `<div class="h-48 w-full bg-slate-900 flex items-center justify-center text-slate-700 group-hover:text-aqua-500 transition duration-300"><i class="fas fa-box text-5xl"></i></div>`;
-
-                grid.innerHTML += `
-                    <div class="bg-slate-950 border border-slate-800/80 hover:border-aqua-500/40 rounded-2xl flex flex-col justify-between overflow-hidden transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-aqua-500/5 group">
-                        <div class="relative">
-                            <div class="overflow-hidden bg-slate-900">
-                                ${img}
-                            </div>
-                            <div class="absolute top-3 left-3 flex flex-col gap-1 z-10">
-                                <span class="bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-md backdrop-blur-md flex items-center gap-1">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Omborda bor
-                                </span>
-                            </div>
+            grid.innerHTML += `
+                <div class="bg-slate-950 border border-slate-800/80 hover:border-aqua-500/40 rounded-2xl flex flex-col justify-between overflow-hidden transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-aqua-500/5 group">
+                    <div class="relative">
+                        <div class="overflow-hidden bg-slate-900">
+                            ${img}
                         </div>
-
-                        <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
-                            <div>
-                                <h4 class="font-bold text-slate-100 group-hover:text-aqua-400 transition-colors duration-200 text-sm line-clamp-2 leading-snug">
-                                    ${title}
-                                </h4>
-                                <p class="text-xs text-slate-400 line-clamp-2 mt-1.5 font-normal leading-relaxed">
-                                    ${body || 'Ushbu mahsulot uchun qo\'shimcha tavsif kiritilmagan.'}
-                                </p>
-                            </div>
-
-                            <div class="flex items-center justify-between border-t border-slate-900/80 pt-3 mt-auto">
-                                <div class="flex flex-col">
-                                    <span class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Narxi</span>
-                                    <span class="font-extrabold text-aqua-400 text-base tracking-tight">
-                                        ${price.toLocaleString()} <span class="text-xs font-normal text-slate-400">so'm</span>
-                                    </span>
-                                </div>
-                                <button onclick="addToCart(${realIndex >= 0 ? realIndex : index})" 
-                                        title="Savatga qo'shish"
-                                        class="bg-slate-900 hover:bg-aqua-500 hover:text-slate-950 border border-slate-800 hover:border-aqua-400 text-slate-200 px-3 py-2 rounded-xl text-xs font-bold transition duration-200 flex items-center gap-2 group/btn active:scale-95">
-                                    <i class="fas fa-cart-plus text-sm group-hover/btn:scale-110 transition"></i>
-                                    <span class="hidden sm:inline">Qo'shish</span>
-                                </button>
-                            </div>
+                        <div class="absolute top-3 left-3 flex flex-col gap-1 z-10">
+                            <span class="bg-slate-900/80 border border-slate-700 text-aqua-400 text-[10px] font-bold px-2 py-0.5 rounded-md backdrop-blur-md">
+                                ${category}
+                            </span>
                         </div>
                     </div>
-                `;
-            });
-        }
 
-        function renderEmpty(msg) {
-            const grid = document.getElementById('products-grid');
-            if (grid) {
-                grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-500">${msg}</div>`;
-            }
-        }
-
-        // MAHSULOTLARNI FILTRLASH (QIDIRUV + KATEGORIYA BIRGAISHLAYDI)
-        function filterProducts() {
-            const desktopInput = document.getElementById('search-input');
-            const mobileInput = document.getElementById('search-input-mobile');
-            
-            const q = (desktopInput ? desktopInput.value : (mobileInput ? mobileInput.value : '')).toLowerCase().trim();
-
-            const filtered = allProducts.filter(p => {
-                const matchCategory = (currentCategory === 'all') || ((p.category || 'Boshqa').trim() === currentCategory);
-                const matchSearch = (p.title || '').toLowerCase().includes(q) || (p.body || '').toLowerCase().includes(q);
-                return matchCategory && matchSearch;
-            });
-
-            renderProducts(filtered);
-        }
-
-        function syncMobileSearch(val) {
-            const desktopInput = document.getElementById('search-input');
-            if (desktopInput) {
-                desktopInput.value = val;
-            }
-            filterProducts();
-        }
-
-        function focusMobileSearch() {
-            const mobInput = document.getElementById('search-input-mobile');
-            if (mobInput) {
-                mobInput.scrollIntoView({ behavior: 'smooth' });
-                mobInput.focus();
-            }
-        }
-
-        // SAVAT FUNKSIYALARI
-        function addToCart(index) {
-            const product = allProducts[index];
-            if (!product) return;
-
-            const existing = cart.find(c => c.title === product.title);
-            if (existing) {
-                existing.qty++;
-            } else {
-                cart.push({
-                    title: product.title || 'Nomsiz',
-                    price: Number(product.price) || 0,
-                    qty: 1
-                });
-            }
-            updateCartUI();
-            toggleCart(true);
-        }
-
-        function updateCartUI() {
-            const badge = document.getElementById('cart-badge');
-            const mobileBadge = document.getElementById('cart-badge-mobile');
-            const totalElem = document.getElementById('cart-total');
-            const list = document.getElementById('cart-items');
-
-            const totalQty = cart.reduce((s, i) => s + i.qty, 0);
-            const totalPrice = cart.reduce((s, i) => s + (i.price * i.qty), 0);
-
-            if (badge) badge.textContent = totalQty;
-            if (mobileBadge) mobileBadge.textContent = totalQty;
-            if (totalElem) totalElem.textContent = `${totalPrice.toLocaleString()} so'm`;
-
-            if (list) {
-                if (cart.length === 0) {
-                    list.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">Savatcha bo'sh</p>`;
-                } else {
-                    list.innerHTML = cart.map((item, idx) => `
-                        <div class="flex justify-between items-center p-3 bg-slate-900 rounded-xl border border-slate-800 text-xs">
-                            <div>
-                                <p class="font-bold text-white">${item.title}</p>
-                                <p class="text-slate-500">${item.price.toLocaleString()} so'm</p>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <button onclick="changeQty(${idx}, -1)" class="text-slate-400 hover:text-white px-2 py-0.5 bg-slate-800 rounded">-</button>
-                                <span class="font-bold">${item.qty}</span>
-                                <button onclick="changeQty(${idx}, 1)" class="text-slate-400 hover:text-white px-2 py-0.5 bg-slate-800 rounded">+</button>
-                            </div>
+                    <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
+                        <div>
+                            <h4 class="font-bold text-slate-100 group-hover:text-aqua-400 transition-colors duration-200 text-sm line-clamp-2 leading-snug">
+                                ${title}
+                            </h4>
+                            <p class="text-xs text-slate-400 line-clamp-2 mt-1.5 font-normal leading-relaxed">
+                                ${body || 'Ushbu mahsulot uchun tavsif kiritilmagan.'}
+                            </p>
                         </div>
-                    `).join('');
-                }
-            }
+
+                        <div class="flex items-center justify-between border-t border-slate-900/80 pt-3 mt-auto">
+                            <div class="flex flex-col">
+                                <span class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Narxi</span>
+                                <span class="font-extrabold text-aqua-400 text-base tracking-tight">
+                                    ${price.toLocaleString()} <span class="text-xs font-normal text-slate-400">so'm</span>
+                                </span>
+                            </div>
+                            <button onclick="addToCart(${realIndex >= 0 ? realIndex : 0})" 
+                                    title="Savatga qo'shish"
+                                    class="bg-slate-900 hover:bg-aqua-500 hover:text-slate-950 border border-slate-800 hover:border-aqua-400 text-slate-200 px-3 py-2 rounded-xl text-xs font-bold transition duration-200 flex items-center gap-2 group/btn active:scale-95">
+                                <i class="fas fa-cart-plus text-sm group-hover/btn:scale-110 transition"></i>
+                                <span class="hidden sm:inline">Qo'shish</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function renderEmpty(msg) {
+        const grid = document.getElementById('products-grid');
+        if (grid) {
+            grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-500">${msg}</div>`;
         }
+    }
 
-        function changeQty(idx, delta) {
-            if (!cart[idx]) return;
-            cart[idx].qty += delta;
-            if (cart[idx].qty <= 0) {
-                cart.splice(idx, 1);
-            }
-            updateCartUI();
+    function filterProducts() {
+        const desktopInput = document.getElementById('search-input');
+        const mobileInput = document.getElementById('search-input-mobile');
+        
+        const q = (desktopInput ? desktopInput.value : (mobileInput ? mobileInput.value : '')).toLowerCase().trim();
+
+        const filtered = allProducts.filter(p => {
+            const pCategory = (p.category || p.kategoriya || 'Boshqa').trim();
+            const pTitle = p.title || p.nomi || '';
+            const pBody = p.body || p.tavsif || '';
+
+            const matchCategory = (currentCategory === 'all') || (pCategory === currentCategory);
+            const matchSearch = pTitle.toLowerCase().includes(q) || pBody.toLowerCase().includes(q);
+            
+            return matchCategory && matchSearch;
+        });
+
+        renderProducts(filtered);
+    }
+
+    function syncMobileSearch(val) {
+        const desktopInput = document.getElementById('search-input');
+        if (desktopInput) desktopInput.value = val;
+        filterProducts();
+    }
+
+    function focusMobileSearch() {
+        const mobInput = document.getElementById('search-input-mobile');
+        if (mobInput) {
+            mobInput.scrollIntoView({ behavior: 'smooth' });
+            mobInput.focus();
         }
+    }
 
-        function toggleCart(open) {
-            const drawer = document.getElementById('cart-drawer');
-            const panel = document.getElementById('cart-panel');
-            if (!drawer || !panel) return;
+    function addToCart(index) {
+        const product = allProducts[index];
+        if (!product) return;
 
-            if (open) {
-                drawer.classList.remove('pointer-events-none', 'opacity-0');
-                panel.classList.remove('translate-x-full');
-            } else {
-                drawer.classList.add('opacity-0');
-                panel.classList.add('translate-x-full');
-                setTimeout(() => drawer.classList.add('pointer-events-none'), 300);
-            }
+        const title = product.title || product.nomi || 'Nomsiz';
+        const price = Number(product.price || product.narxi) || 0;
+
+        const existing = cart.find(c => c.title === title);
+        if (existing) {
+            existing.qty++;
+        } else {
+            cart.push({ title, price, qty: 1 });
         }
+        updateCartUI();
+        toggleCart(true);
+    }
 
-        // BUYURTMA BERISH (TELEGRAM)
-        async function checkout() {
-            const nameElem = document.getElementById('cust-name');
-            const phoneElem = document.getElementById('cust-phone');
-            const btn = document.getElementById('checkout-btn');
+    function updateCartUI() {
+        const badge = document.getElementById('cart-badge');
+        const mobileBadge = document.getElementById('cart-badge-mobile');
+        const totalElem = document.getElementById('cart-total');
+        const list = document.getElementById('cart-items');
 
-            const name = nameElem ? nameElem.value.trim() : '';
-            const phone = phoneElem ? phoneElem.value.trim() : '';
+        const totalQty = cart.reduce((s, i) => s + i.qty, 0);
+        const totalPrice = cart.reduce((s, i) => s + (i.price * i.qty), 0);
 
-            if (!name || !phone) {
-                alert("Iltimos, ismingiz va telefon raqamingizni kiriting!");
-                return;
-            }
+        if (badge) badge.textContent = totalQty;
+        if (mobileBadge) mobileBadge.textContent = totalQty;
+        if (totalElem) totalElem.textContent = `${totalPrice.toLocaleString()} so'm`;
 
+        if (list) {
             if (cart.length === 0) {
-                alert("Savatchangiz bo'sh!");
-                return;
+                list.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">Savatcha bo'sh</p>`;
+            } else {
+                list.innerHTML = cart.map((item, idx) => `
+                    <div class="flex justify-between items-center p-3 bg-slate-900 rounded-xl border border-slate-800 text-xs">
+                        <div>
+                            <p class="font-bold text-white">${item.title}</p>
+                            <p class="text-slate-500">${item.price.toLocaleString()} so'm</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="changeQty(${idx}, -1)" class="text-slate-400 hover:text-white px-2 py-0.5 bg-slate-800 rounded">-</button>
+                            <span class="font-bold">${item.qty}</span>
+                            <button onclick="changeQty(${idx}, 1)" class="text-slate-400 hover:text-white px-2 py-0.5 bg-slate-800 rounded">+</button>
+                        </div>
+                    </div>
+                `).join('');
             }
+        }
+    }
 
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Yuborilmoqda...`;
+    function changeQty(idx, delta) {
+        if (!cart[idx]) return;
+        cart[idx].qty += delta;
+        if (cart[idx].qty <= 0) cart.splice(idx, 1);
+        updateCartUI();
+    }
 
-            const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
-            let message = `🛒 *YANGI BUYURTMA (IDEAL AQUA)*\n\n`;
-            message += `👤 *Mijoz:* ${name}\n`;
-            message += `📞 *Tel:* ${phone}\n\n`;
-            message += `📦 *Mahsulotlar:* \n`;
+    function toggleCart(open) {
+        const drawer = document.getElementById('cart-drawer');
+        const panel = document.getElementById('cart-panel');
+        if (!drawer || !panel) return;
 
-            cart.forEach((item, index) => {
-                message += `${index + 1}. ${item.title} — ${item.qty} ta x ${item.price.toLocaleString()} = ${(item.price * item.qty).toLocaleString()} so'm\n`;
+        if (open) {
+            drawer.classList.remove('pointer-events-none', 'opacity-0');
+            panel.classList.remove('translate-x-full');
+        } else {
+            drawer.classList.add('opacity-0');
+            panel.classList.add('translate-x-full');
+            setTimeout(() => drawer.classList.add('pointer-events-none'), 300);
+        }
+    }
+
+    async function checkout() {
+        const nameElem = document.getElementById('cust-name');
+        const phoneElem = document.getElementById('cust-phone');
+        const btn = document.getElementById('checkout-btn');
+
+        const name = nameElem ? nameElem.value.trim() : '';
+        const phone = phoneElem ? phoneElem.value.trim() : '';
+
+        if (!name || !phone) {
+            alert("Iltimos, ismingiz va telefon raqamingizni kiriting!");
+            return;
+        }
+
+        if (cart.length === 0) {
+            alert("Savatchangiz bo'sh!");
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Yuborilmoqda...`;
+
+        const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+        let message = `🛒 *YANGI BUYURTMA (IDEAL AQUA)*\n\n`;
+        message += `👤 *Mijoz:* ${name}\n`;
+        message += `📞 *Tel:* ${phone}\n\n`;
+        message += `📦 *Mahsulotlar:* \n`;
+
+        cart.forEach((item, index) => {
+            message += `${index + 1}. ${item.title} — ${item.qty} ta x ${item.price.toLocaleString()} = ${(item.price * item.qty).toLocaleString()} so'm\n`;
+        });
+
+        message += `\n💰 *Jami:* ${total.toLocaleString()} so'm`;
+
+        if (BOT_TOKEN === "YOUR_BOT_TOKEN") {
+            alert("Telegram Bot Token joylanmagan!");
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fas fa-check-circle"></i> Buyurtmani Tasdiqlash`;
+            return;
+        }
+
+        try {
+            const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: CHAT_ID,
+                    text: message,
+                    parse_mode: 'Markdown'
+                })
             });
 
-            message += `\n💰 *Jami:* ${total.toLocaleString()} so'm`;
-
-            if (BOT_TOKEN === "YOUR_BOT_TOKEN") {
-                alert("Telegram Bot Token joylanmagan! Dasturchi sozlamalarida Bot Token va Chat ID ni ko'rsating.");
-                btn.disabled = false;
-                btn.innerHTML = `<i class="fas fa-check-circle"></i> Buyurtmani Tasdiqlash`;
-                return;
+            if (response.ok) {
+                cart = [];
+                updateCartUI();
+                if (nameElem) nameElem.value = '';
+                if (phoneElem) phoneElem.value = '';
+                
+                toggleCart(false);
+                document.getElementById('success-modal').classList.remove('hidden');
+            } else {
+                alert("Telegram API'da xatolik yuz berdi.");
             }
-
-            try {
-                const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: CHAT_ID,
-                        text: message,
-                        parse_mode: 'Markdown'
-                    })
-                });
-
-                if (response.ok) {
-                    cart = [];
-                    updateCartUI();
-                    if (nameElem) nameElem.value = '';
-                    if (phoneElem) phoneElem.value = '';
-                    
-                    toggleCart(false);
-                    document.getElementById('success-modal').classList.remove('hidden');
-                } else {
-                    alert("Telegram API'da xatolik yuz berdi. Bot Token yoki Chat ID to'g'riligini tekshiring.");
-                }
-            } catch (err) {
-                alert("Tarmoq xatosi! Internet aloqasini tekshiring.");
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = `<i class="fas fa-check-circle"></i> Buyurtmani Tasdiqlash`;
-            }
+        } catch (err) {
+            alert("Tarmoq xatosi!");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fas fa-check-circle"></i> Buyurtmani Tasdiqlash`;
         }
+    }
 
-        function closeSuccessModal() {
-            const modal = document.getElementById('success-modal');
-            if (modal) modal.classList.add('hidden');
-        }
+    function closeSuccessModal() {
+        const modal = document.getElementById('success-modal');
+        if (modal) modal.classList.add('hidden');
+    }
 
-        document.addEventListener('DOMContentLoaded', loadProducts);
-    </script>
+    document.addEventListener('DOMContentLoaded', loadProducts);
+</script>
 </body>
 </html>
