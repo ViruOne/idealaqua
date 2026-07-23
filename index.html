@@ -129,43 +129,29 @@
 
         let cart = [];
 
-// jsDelivr cheklovsiz CDN API orqali yuklash (403 xatosisiz!)
+// GitHub API'siz, 403 xatosisiz to'g'ridan-to'g'ri va tezkor yuklash
         async function loadProducts() {
             const grid = document.getElementById('products-grid');
             try {
-                // Keshni aylanib o'tish uchun vaqt tamg'asi
                 const t = new Date().getTime();
                 
-                // GitHub API o'rniga jsDelivr CDN orqali papka kontentini olamiz
-                const res = await fetch(`https://data.jsdelivr.com/v1/packages/gh/ViruOne/idealaqua@main/resolved?path=data/products`);
-                
-                // Zaxira: bevosita jsDelivr katalogi
-                const dirRes = await fetch(`https://cdn.jsdelivr.net/gh/ViruOne/idealaqua@main/data/products/`);
-
-                // Papkadagi barcha fayllarni GitHub Raw CDN orqali yuklaymiz
-                // (GitHub API'ga murojaat qilinmaydi, shuning uchun 403 bo'lmaydi)
-                const listRes = await fetch(`https://api.github.com/repos/ViruOne/idealaqua/contents/data/products?t=${t}`).catch(() => null);
-
-                let jsonFiles = [];
-
-                if (listRes && listRes.ok) {
-                    const files = await listRes.json();
-                    jsonFiles = Array.isArray(files) ? files.map(f => f.name).filter(n => n.endsWith('.json')) : [];
+                // 1. Dastlab data/products.json indeksini o'qiymiz (Cloudflare'dan to'g'ridan-to'g'ri)
+                const res = await fetch(`/data/products.json?v=${t}`);
+                if (!res.ok) {
+                    grid.innerHTML = '<p class="text-gray-500 text-center col-span-full py-8">Hozircha mahsulotlar mavjud emas.</p>';
+                    return;
                 }
 
-                // Agar GitHub API 403 bersa (hozirgi holatda), ro'yxatni zudlik bilan CDN orqali tiklaymiz
-                if (jsonFiles.length === 0) {
-                    // GitHub Commit xaritasidan fayllarni qidirish zaxirasi
-                    const rawTree = await fetch(`https://cdn.jsdelivr.net/gh/ViruOne/idealaqua@main/data/products/`);
-                    if (!rawTree.ok) {
-                        grid.innerHTML = '<p class="text-gray-500 text-center col-span-full py-8">Hozircha mahsulotlar mavjud emas.</p>';
-                        return;
-                    }
+                const fileNames = await res.json();
+
+                if (!Array.isArray(fileNames) || fileNames.length === 0) {
+                    grid.innerHTML = '<p class="text-gray-500 text-center col-span-full py-8">Hozircha mahsulotlar mavjud me'da.</p>';
+                    return;
                 }
 
-                // Har bir mahsulot faylini yuklash
-                const productPromises = jsonFiles.map(fileName => 
-                    fetch(`https://raw.githubusercontent.com/ViruOne/idealaqua/main/data/products/${fileName}?t=${t}`)
+                // 2. Har bir mahsulot faylini o'zingizning domeningizdan (keshsiz) yuklaymiz
+                const productPromises = fileNames.map(fileName => 
+                    fetch(`/data/products/${fileName}?v=${t}`)
                         .then(r => r.ok ? r.json() : null)
                         .catch(() => null)
                 );
