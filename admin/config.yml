@@ -7,22 +7,18 @@ media_folder: "public/images/uploads"
 public_folder: "/images/uploads"
 
 collections:
-  - name: "products_collection"
-    label: "Mahsulotlar Boshqaruvi"
-    files:
-      - label: "Barcha Mahsulotlar Ro'yxati"
-        name: "products_list"
-        file: "public/products.json"
-        fields:
-          - label: "Mahsulotlar"
-            name: "items"
-            widget: "list"
-            required: false
-            collapsed: false
-            summary: "{{fields.title}} - {{fields.price}} so'm"
-            fields:
-              - { label: "Nomi", name: "title", widget: "string", required: true }
-              - { label: "Kategoriya", name: "category", widget: "select", options: ["Fitinglar", "Tomchilatib sug'orish", "Rain Gun (Yomg'irlatgichlar)", "Nasoslar va Boshqaruv", "Quvurlar", "Boshqa"], default: "Fitinglar", required: true }
-              - { label: "Narxi (so'mda)", name: "price", widget: "number", value_type: "int", required: true }
-              - { label: "Rasm", name: "image", widget: "image", required: false }
-              - { label: "Batafsil ma'lumot", name: "body", widget: "text", required: false }
+  - name: "products"
+    label: "Mahsulotlar"
+    label_singular: "Mahsulot"
+    folder: "public/data/products"
+    create: true
+    slug: "{{slug}}"
+    extension: "json"
+    format: "json"
+    summary: "{{title}} — {{price}} so'm"
+    fields:
+      - { label: "Mahsulot nomi", name: "title", widget: "string", required: true }
+      - { label: "Kategoriya", name: "category", widget: "select", options: ["Fitinglar", "Tomchilatib sug'orish", "Rain Gun (Yomg'irlatgichlar)", "Nasoslar va Boshqaruv", "Quvurlar", "Boshqa"], default: "Fitinglar", required: true }
+      - { label: "Narxi (so'mda)", name: "price", widget: "number", value_type: "int", required: true }
+      - { label: "Rasm", name: "image", widget: "image", required: false }
+      - { label: "Batafsil ma'lumot", name: "body", widget: "text", required: false }
