@@ -9,15 +9,16 @@ public_folder: "/images/uploads"
 collections:
   - name: "products"
     label: "Mahsulotlar"
-    folder: "public/data/products" # Bu majburiy qator!
+    folder: "public/data/products"
     json_backlink: "public/data/products.json"
     create: true
     slug: "{{slug}}"
     extension: "json"
     format: "json"
     fields:
-      - { label: "Nomi", name: "title", widget: "string" }
+      - { label: "ID / Kod", name: "id", widget: "string", required: false }
+      - { label: "Nomi", name: "name", widget: "string" }
       - { label: "Kategoriya", name: "category", widget: "string" }
       - { label: "Narxi (so'm)", name: "price", widget: "number", value_type: "int" }
       - { label: "Rasm", name: "image", widget: "image", required: false }
-      - { label: "Tavsif", name: "body", widget: "text", required: false }
+      - { label: "Tavsif", name: "description", widget: "text", required: false }
