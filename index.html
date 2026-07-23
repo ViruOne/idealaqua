@@ -168,83 +168,79 @@
     let currentCategory = 'all';
 
     async function loadProducts() {
-    try {
-        const t = new Date().getTime();
-        let loadedItems = [];
+        try {
+            const t = new Date().getTime();
+            let loadedItems = [];
 
-        // 1. Sveltia CMS indeks faylini o'qiymiz
-        const indexRes = await fetch(`/data/products.json?v=${t}`);
-        
-        if (indexRes.ok) {
-            const contentType = indexRes.headers.get("content-type");
-            if (contentType && contentType.includes("application/json")) {
-                const fileList = await indexRes.json();
-                
-                if (Array.isArray(fileList)) {
-                    const fetchPromises = fileList.map(async (fileName) => {
-                        try {
-                            const pRes = await fetch(`/data/products/${fileName}?v=${t}`);
-                            if (pRes.ok) return await pRes.json();
-                        } catch (err) {
-                            return null;
-                        }
-                    });
+            // 1. Sveltia CMS indeks faylini o'qiymiz
+            const indexRes = await fetch(`/data/products.json?v=${t}`);
+            
+            if (indexRes.ok) {
+                const contentType = indexRes.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    const fileList = await indexRes.json();
+                    
+                    if (Array.isArray(fileList)) {
+                        const fetchPromises = fileList.map(async (fileName) => {
+                            try {
+                                const pRes = await fetch(`/data/products/${fileName}?v=${t}`);
+                                if (pRes.ok) return await pRes.json();
+                            } catch (err) {
+                                return null;
+                            }
+                        });
 
-                    const fetched = await Promise.all(fetchPromises);
-                    loadedItems = fetched.filter(p => p && typeof p === 'object');
+                        const fetched = await Promise.all(fetchPromises);
+                        loadedItems = fetched.filter(p => p && typeof p === 'object');
+                    }
                 }
             }
+
+            // 2. Maydonlarni to'g'ri biriktirish (title birinchi o'rinda)
+            allProducts = loadedItems.map((p, index) => ({
+                id: p.id || `prod_${index}`,
+                title: p.title || p.name || p.nomi || "Nomsiz mahsulot",
+                category: p.category || p.kategoriya || "Barchasi",
+                price: Number(p.price || p.narxi) || 0,
+                image: p.image || "",
+                body: p.body || p.description || p.tavsif || ""
+            }));
+
+            renderCategories();
+            filterProducts();
+
+        } catch (e) {
+            console.error("Yuklash xatosi:", e);
+            renderCategories();
+            renderEmpty("Mahsulotlarni yuklashda xatolik yuz berdi.");
         }
-
-        // 2. Maydonlarni biriktirish (title birinchi o'rinda)
-        allProducts = loadedItems.map((p, index) => ({
-            id: p.id || `prod_${index}`,
-            name: p.title || p.name || "Nomsiz mahsulot",
-            category: p.category || "Barchasi",
-            price: p.price || 0,
-            image: p.image || "",
-            description: p.body || p.description || ""
-        }));
-
-        renderCategories();
-        filterProducts();
-
-    } catch (e) {
-        console.error("Yuklash xatosi:", e);
-        renderCategories();
-        renderEmpty("Mahsulotlarni yuklashda xatolik yuz berdi.");
     }
-}
 
-        // 2. Maydonlarni bir xil ko'rinishga keltirish
-        allProducts = loadedItems.map((p, index) => ({
-            id: p.id || `prod_${index}`,
-            name: p.title || p.name || "Nomsiz mahsulot",
-            category: p.category || "Barchasi",
-            price: p.price || 0,
-            image: p.image || "",
-            description: p.body || p.description || ""
-        }));
-
-        renderCategories();
-        filterProducts();
-
-    } catch (e) {
-        console.error("Yuklash xatosi:", e);
-        renderCategories();
-        renderEmpty("Mahsulotlarni yuklashda xatolik yuz berdi.");
+    function syncMobileSearch(val) {
+        const desktopInput = document.getElementById('search-input');
+        if (desktopInput) {
+            desktopInput.value = val;
+            filterProducts();
+        }
     }
-}
+
+    function focusMobileSearch() {
+        const mobileInput = document.getElementById('search-input-mobile');
+        if (mobileInput) {
+            mobileInput.focus();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
 
     // CMS'DAN KELGAN KATEGORIYALARNI CHIQARISH
     function renderCategories() {
-        const catNav = document.querySelector('aside nav');
+        const catNav = document.getElementById('categories-list');
         if (!catNav) return;
 
         const counts = {};
         
         allProducts.forEach(p => {
-            let cat = p.category || p.kategoriya || 'Boshqa';
+            let cat = p.category || 'Boshqa';
             if (typeof cat === 'string') cat = cat.trim();
             if (!cat) cat = 'Boshqa';
 
@@ -291,9 +287,9 @@
         const q = (desktopInput ? desktopInput.value : '').toLowerCase().trim();
 
         const filtered = allProducts.filter(p => {
-            const pCategory = (p.category || p.kategoriya || 'Boshqa').trim();
-            const pTitle = p.title || p.nomi || '';
-            const pBody = p.body || p.tavsif || '';
+            const pCategory = (p.category || 'Boshqa').trim();
+            const pTitle = p.title || '';
+            const pBody = p.body || '';
 
             const matchCategory = (currentCategory === 'all') || (pCategory === currentCategory);
             const matchSearch = pTitle.toLowerCase().includes(q) || pBody.toLowerCase().includes(q);
@@ -314,12 +310,12 @@
 
         grid.innerHTML = '';
         products.forEach((p) => {
-            const title = p.title || p.nomi || 'Nomsiz Mahsulot';
-            const body = p.body || p.tavsif || '';
-            const price = Number(p.price || p.narxi) || 0;
-            const category = p.category || p.kategoriya || 'Boshqa';
+            const title = p.title || 'Nomsiz Mahsulot';
+            const body = p.body || '';
+            const price = Number(p.price) || 0;
+            const category = p.category || 'Boshqa';
             
-            const realIndex = allProducts.findIndex(item => (item.title || item.nomi) === title);
+            const realIndex = allProducts.findIndex(item => item.title === title);
 
             const img = p.image 
                 ? `<img src="${p.image}" class="h-48 w-full object-cover group-hover:scale-105 transition duration-500" alt="${title}">`
@@ -379,8 +375,8 @@
         const product = allProducts[index];
         if (!product) return;
 
-        const title = product.title || product.nomi || 'Nomsiz';
-        const price = Number(product.price || product.narxi) || 0;
+        const title = product.title || 'Nomsiz';
+        const price = Number(product.price) || 0;
 
         const existing = cart.find(c => c.title === title);
         if (existing) {
@@ -394,6 +390,7 @@
 
     function updateCartUI() {
         const badge = document.getElementById('cart-badge');
+        const badgeMobile = document.getElementById('cart-badge-mobile');
         const totalElem = document.getElementById('cart-total');
         const list = document.getElementById('cart-items');
 
@@ -401,6 +398,7 @@
         const totalPrice = cart.reduce((s, i) => s + (i.price * i.qty), 0);
 
         if (badge) badge.textContent = totalQty;
+        if (badgeMobile) badgeMobile.textContent = totalQty;
         if (totalElem) totalElem.textContent = `${totalPrice.toLocaleString()} so'm`;
 
         if (list) {
