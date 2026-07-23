@@ -57,7 +57,7 @@
         </div>
     </header>
 
-    <!-- Mobil uchun Qidiruv Paneli (Noutbukda ko'rinmaydi) -->
+    <!-- Mobil uchun Qidiruv Paneli -->
     <div class="sm:hidden px-4 pt-4">
         <div class="relative w-full">
             <i class="fas fa-search absolute left-3.5 top-3 text-slate-500 text-sm"></i>
@@ -69,14 +69,17 @@
     <!-- Main Layout -->
     <div class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row gap-6">
         
-        <!-- Sidebar -->
+        <!-- Sidebar (Kategoriyalar) -->
         <aside class="w-full md:w-64 space-y-6 flex-shrink-0">
             <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800/80 space-y-4">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Kategoriyalar</h3>
-                <nav class="space-y-1 text-sm">
-                    <button class="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-aqua-500/10 text-aqua-400 font-medium">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Kategoriyalar</h3>
+                    <i class="fas fa-layer-group text-slate-500 text-xs"></i>
+                </div>
+                <nav id="categories-list" class="space-y-1 text-sm">
+                    <button onclick="selectCategory('all')" id="cat-btn-all" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-aqua-500/10 text-aqua-400 font-semibold transition">
                         <span><i class="fas fa-border-all mr-2 opacity-70"></i> Barchasi</span>
-                        <span id="count-all" class="text-xs opacity-60">0</span>
+                        <span id="count-all" class="text-xs px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">0</span>
                     </button>
                 </nav>
             </div>
@@ -90,22 +93,19 @@
         </main>
     </div>
 
-    <!-- MOBIL BOTTOM NAVIGATION BAR (Faqat smartfonlar uchun) -->
+    <!-- MOBIL BOTTOM NAVIGATION BAR -->
     <div class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/90 backdrop-blur-lg border-t border-slate-800 px-6 py-2">
         <div class="flex items-center justify-around">
-            <!-- Bosh sahifa / Katalog -->
             <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="flex flex-col items-center gap-1 text-aqua-400">
                 <i class="fas fa-store text-lg"></i>
                 <span class="text-[10px] font-semibold">Do'kon</span>
             </button>
 
-            <!-- Qidiruvga tezkor o'tish -->
             <button onclick="focusMobileSearch()" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition">
                 <i class="fas fa-search text-lg"></i>
                 <span class="text-[10px] font-semibold">Qidiruv</span>
             </button>
 
-            <!-- Savatcha -->
             <button onclick="toggleCart(true)" class="relative flex flex-col items-center gap-1 text-slate-400 hover:text-white transition">
                 <div class="relative">
                     <i class="fas fa-shopping-bag text-lg"></i>
@@ -165,6 +165,7 @@
 
         let allProducts = [];
         let cart = [];
+        let currentCategory = 'all';
 
         async function loadProducts() {
             const grid = document.getElementById('products-grid');
@@ -189,22 +190,65 @@
                 const rawProducts = await Promise.all(promises);
                 allProducts = rawProducts.filter(p => p !== null && typeof p === 'object');
                 
-                const countElem = document.getElementById('count-all');
-                if (countElem) countElem.textContent = allProducts.length;
-
-                renderProducts(allProducts);
+                renderCategories();
+                filterProducts();
             } catch (e) {
                 console.error("Yuklash xatosi:", e);
                 renderEmpty("Mahsulotlarni yuklashda xatolik yuz berdi.");
             }
         }
 
+        // KATEGORIYALARNI DINAMIK GENERATSIYA QILISH
+        function renderCategories() {
+            const catNav = document.getElementById('categories-list');
+            if (!catNav) return;
+
+            // Barcha mavjud kategoriyalarni yig'ish va nechtaligini sanash
+            const counts = {};
+            allProducts.forEach(p => {
+                const cat = p.category ? p.category.trim() : 'Boshqa';
+                counts[cat] = (counts[cat] || 0) + 1;
+            });
+
+            // HTML tayyorlash ("Barchasi" tugmasini saqlab qolgan holda)
+            let html = `
+                <button onclick="selectCategory('all')" id="cat-btn-all" 
+                        class="cat-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition text-left ${currentCategory === 'all' ? 'bg-aqua-500/10 text-aqua-400 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-900'}">
+                    <span><i class="fas fa-border-all mr-2 opacity-70"></i> Barchasi</span>
+                    <span id="count-all" class="text-xs px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">${allProducts.length}</span>
+                </button>
+            `;
+
+            Object.keys(counts).forEach(cat => {
+                const isActive = currentCategory === cat;
+                const activeClasses = isActive ? 'bg-aqua-500/10 text-aqua-400 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-900';
+                
+                html += `
+                    <button onclick="selectCategory('${cat}')" 
+                            class="cat-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition text-left ${activeClasses}">
+                        <span class="truncate"><i class="fas fa-folder mr-2 opacity-70"></i> ${cat}</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">${counts[cat]}</span>
+                    </button>
+                `;
+            });
+
+            catNav.innerHTML = html;
+        }
+
+        // KATEGORIYANI TANLASH
+        function selectCategory(cat) {
+            currentCategory = cat;
+            renderCategories(); // Tugmalar faollik holatini yangilaydi
+            filterProducts();   // Mahsulotlarni saralaydi
+        }
+
+        // MAHSULOTLARNI EKTRANGA CHIQARISH
         function renderProducts(products) {
             const grid = document.getElementById('products-grid');
             if (!grid) return;
 
             if (!products || products.length === 0) {
-                return renderEmpty("Hech narsa topilmadi.");
+                return renderEmpty("Ushbu bo'limda mahsulotlar topilmadi.");
             }
 
             grid.innerHTML = '';
@@ -213,6 +257,9 @@
                 const body = p.body || '';
                 const price = Number(p.price) || 0;
                 
+                // Mahsulot indeksini topish (Savatga to'g'ri qo'shilishi uchun)
+                const realIndex = allProducts.findIndex(item => item.title === title);
+
                 const img = p.image 
                     ? `<img src="${p.image}" class="h-48 w-full object-cover group-hover:scale-105 transition duration-500" alt="${title}">`
                     : `<div class="h-48 w-full bg-slate-900 flex items-center justify-center text-slate-700 group-hover:text-aqua-500 transition duration-300"><i class="fas fa-box text-5xl"></i></div>`;
@@ -247,7 +294,7 @@
                                         ${price.toLocaleString()} <span class="text-xs font-normal text-slate-400">so'm</span>
                                     </span>
                                 </div>
-                                <button onclick="addToCart(${index})" 
+                                <button onclick="addToCart(${realIndex >= 0 ? realIndex : index})" 
                                         title="Savatga qo'shish"
                                         class="bg-slate-900 hover:bg-aqua-500 hover:text-slate-950 border border-slate-800 hover:border-aqua-400 text-slate-200 px-3 py-2 rounded-xl text-xs font-bold transition duration-200 flex items-center gap-2 group/btn active:scale-95">
                                     <i class="fas fa-cart-plus text-sm group-hover/btn:scale-110 transition"></i>
@@ -267,6 +314,39 @@
             }
         }
 
+        // MAHSULOTLARNI FILTRLASH (QIDIRUV + KATEGORIYA BIRGAISHLAYDI)
+        function filterProducts() {
+            const desktopInput = document.getElementById('search-input');
+            const mobileInput = document.getElementById('search-input-mobile');
+            
+            const q = (desktopInput ? desktopInput.value : (mobileInput ? mobileInput.value : '')).toLowerCase().trim();
+
+            const filtered = allProducts.filter(p => {
+                const matchCategory = (currentCategory === 'all') || ((p.category || 'Boshqa').trim() === currentCategory);
+                const matchSearch = (p.title || '').toLowerCase().includes(q) || (p.body || '').toLowerCase().includes(q);
+                return matchCategory && matchSearch;
+            });
+
+            renderProducts(filtered);
+        }
+
+        function syncMobileSearch(val) {
+            const desktopInput = document.getElementById('search-input');
+            if (desktopInput) {
+                desktopInput.value = val;
+            }
+            filterProducts();
+        }
+
+        function focusMobileSearch() {
+            const mobInput = document.getElementById('search-input-mobile');
+            if (mobInput) {
+                mobInput.scrollIntoView({ behavior: 'smooth' });
+                mobInput.focus();
+            }
+        }
+
+        // SAVAT FUNKSIYALARI
         function addToCart(index) {
             const product = allProducts[index];
             if (!product) return;
@@ -343,35 +423,7 @@
             }
         }
 
-        function filterProducts() {
-            const input = document.getElementById('search-input');
-            if (!input) return;
-            const q = input.value.toLowerCase().trim();
-            
-            const filtered = allProducts.filter(p => 
-                (p.title || '').toLowerCase().includes(q) || 
-                (p.body || '').toLowerCase().includes(q)
-            );
-            renderProducts(filtered);
-        }
-
-        // Mobil qidiruvni sinxronlash
-        function syncMobileSearch(val) {
-            const desktopInput = document.getElementById('search-input');
-            if (desktopInput) {
-                desktopInput.value = val;
-                filterProducts();
-            }
-        }
-
-        function focusMobileSearch() {
-            const mobInput = document.getElementById('search-input-mobile');
-            if (mobInput) {
-                mobInput.scrollIntoView({ behavior: 'smooth' });
-                mobInput.focus();
-            }
-        }
-
+        // BUYURTMA BERISH (TELEGRAM)
         async function checkout() {
             const nameElem = document.getElementById('cust-name');
             const phoneElem = document.getElementById('cust-phone');
