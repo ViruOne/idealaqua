@@ -9,14 +9,15 @@ public_folder: "/images/uploads"
 collections:
   - name: "products"
     label: "Mahsulotlar"
-    folder: "public/data/products" # Mahsulotlar saqlanadigan papka
-    create: true
-    slug: "{{slug}}"
-    extension: "json"
-    format: "json"
+    file: "public/products.json" # Hamma mahsulot bitta joyga tushadi
+    label_singular: "Mahsulot"
     fields:
-      - { label: "Nomi", name: "title", widget: "string" }
-      - { label: "Kategoriya", name: "category", widget: "string" }
-      - { label: "Narxi (so'm)", name: "price", widget: "number", value_type: "int" }
-      - { label: "Rasm", name: "image", widget: "image", required: false }
-      - { label: "Tavsif", name: "body", widget: "text", required: false }
+      - name: "items"
+        label: "Mahsulotlar ro'yxati"
+        widget: "list"
+        fields:
+          - { label: "Nomi", name: "title", widget: "string" }
+          - { label: "Kategoriya", name: "category", widget: "string" }
+          - { label: "Narxi (so'm)", name: "price", widget: "number", value_type: "int" }
+          - { label: "Rasm URL", name: "image", widget: "image", required: false }
+          - { label: "Tavsif", name: "body", widget: "text", required: false }
