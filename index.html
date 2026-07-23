@@ -170,23 +170,33 @@
     async function loadProducts() {
     try {
         const t = new Date().getTime();
+        let loadedItems = [];
+
+        // 1. Sveltia CMS yaratgan indeks faylini o'qiymiz (/data/products.json)
+        const indexRes = await fetch(`/data/products.json?v=${t}`);
         
-        const res = await fetch(`/products.json?v=${t}`);
-        
-        // Response HTML yoki xatolik bo'lsa JSON qilmaymiz
-        const contentType = res.headers.get("content-type");
-        if (!res.ok || !contentType || !contentType.includes("application/json")) {
-            console.warn("products.json hali topilmadi yoki bo'sh.");
-            allProducts = [];
-            renderCategories();
-            renderEmpty("Hozircha mahsulotlar mavjud emas.");
-            return;
+        if (indexRes.ok) {
+            const contentType = indexRes.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+                const fileList = await indexRes.json();
+                
+                if (Array.isArray(fileList)) {
+                    // Papkadagi har bir individual faylni yuklaymiz
+                    const fetchPromises = fileList.map(async (fileName) => {
+                        try {
+                            const pRes = await fetch(`/data/products/${fileName}?v=${t}`);
+                            if (pRes.ok) return await pRes.json();
+                        } catch (err) { return null; }
+                    });
+
+                    const fetched = await Promise.all(fetchPromises);
+                    loadedItems = fetched.filter(p => p && typeof p === 'object');
+                }
+            }
         }
 
-        const data = await res.json();
-        const rawItems = Array.isArray(data) ? data : (data.items || []);
-
-        allProducts = rawItems.map((p, index) => ({
+        // 2. Maydonlarni bir xil ko'rinishga keltirish
+        allProducts = loadedItems.map((p, index) => ({
             id: p.id || `prod_${index}`,
             name: p.title || p.name || "Nomsiz mahsulot",
             category: p.category || "Barchasi",
