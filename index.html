@@ -167,22 +167,24 @@
     let cart = [];
     let currentCategory = 'all';
 
-    async function loadProducts() {
-        const grid = document.getElementById('products-grid');
-        try {
-            // Keshni aylanib o'tish uchun vaqt qo'shamiz
-            const t = new Date().getTime();
-            
-            // 1. GitHub Action yaratgan indeks JSON faylini yuklaymiz
-            const res = await fetch(`/data/products.json?v=${t}`);
-            if (!res.ok) throw new Error("products.json topilmadi");
-            
-            const fileNames = await res.json();
-            
-            if (!Array.isArray(fileNames) || fileNames.length === 0) {
-                renderCategories();
-                return renderEmpty("Hozircha mahsulotlar kiritilmagan.");
-            }
+  async function loadProducts() {
+    try {
+        const t = new Date().getTime();
+        // Endi to'g'ridan-to'g'ri bitta fayldan o'qiydi
+        const res = await fetch(`/products.json?v=${t}`);
+        if (!res.ok) throw new Error("products.json topilmadi");
+        
+        const data = await res.json();
+        allProducts = data.items || [];
+        
+        renderCategories();
+        filterProducts();
+    } catch (e) {
+        console.error("Yuklash xatosi:", e);
+        renderCategories();
+        renderEmpty("Mahsulotlarni yuklashda xatolik yuz berdi.");
+    }
+}
 
             // 2. Har bir mahsulot faylini o'qiymiz
             const promises = fileNames.map(async (f) => {
