@@ -170,35 +170,44 @@
     async function loadProducts() {
     try {
         const t = new Date().getTime();
-        allProducts = [];
+        let loadedItems = [];
 
-        // 1-urinish: Top-level products.json faylini o'qib ko'ramiz
-        const res = await fetch(`/products.json?v=${t}`);
-        const contentType = res.headers.get("content-type");
+        // 1. Asosiy products.json faylini tekshirish
+        try {
+            const res = await fetch(`/products.json?v=${t}`);
+            if (res.ok) {
+                const contentType = res.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    const data = await res.json();
+                    const mainItems = Array.isArray(data) ? data : (data.items || []);
+                    loadedItems = [...loadedItems, ...mainItems];
+                }
+            }
+        } catch (e) {
+            console.log("Main products.json missing or invalid");
+        }
 
-        if (res.ok && contentType && contentType.includes("application/json")) {
-            const data = await res.json();
-            allProducts = Array.isArray(data) ? data : (data.items || []);
-        } else {
-            // 2-urinish: Agar root'da bo'lmasa, folder-based JSON papkani izlaymiz
+        // 2. CMS orqali qo'shilgan/yaratilgan /data/products/ papkasidagi ro'yxatni yuklash
+        try {
             const indexRes = await fetch(`/data/products.json?v=${t}`);
-            const indexType = indexRes.headers.get("content-type");
-
-            if (indexRes.ok && indexType && indexType.includes("application/json")) {
-                const files = await indexRes.json();
-                if (Array.isArray(files)) {
-                    const promises = files.map(async (f) => {
+            if (indexRes.ok) {
+                const fileList = await indexRes.json();
+                if (Array.isArray(fileList)) {
+                    const fetchPromises = fileList.map(async (fileName) => {
                         try {
-                            if (typeof f === 'object' && f !== null) return f;
-                            const pRes = await fetch(`/data/products/${f}?v=${t}`);
+                            const pRes = await fetch(`/data/products/${fileName}?v=${t}`);
                             if (pRes.ok) return await pRes.json();
                         } catch (err) { return null; }
                     });
-                    const raw = await Promise.all(promises);
-                    allProducts = raw.filter(p => p && typeof p === 'object');
+                    const cmsItems = await Promise.all(fetchPromises);
+                    loadedItems = [...loadedItems, ...cmsItems.filter(p => p && typeof p === 'object')];
                 }
             }
+        } catch (e) {
+            console.log("CMS dynamic directory read skipped");
         }
+
+        allProducts = loadedItems;
 
         renderCategories();
         filterProducts();
