@@ -129,43 +129,19 @@
 
         let cart = [];
 
-      // CMS'dan papka ichidagi barcha mahsulotlarni real-vaqt rejimida yuklash
+     // Static JSON faylidan mahsulotlarni tezkor yuklash
         async function loadProducts() {
             const grid = document.getElementById('products-grid');
             try {
-                // Keshni chetlab o'tish uchun vaqt tamg'asi (timestamp) qo'shamiz
-                const timestamp = new Date().getTime();
-                const res = await fetch(`https://api.github.com/repos/ViruOne/idealaqua/contents/data/products?ref=main&t=${timestamp}`, {
-                    headers: {
-                        'Accept': 'application/vnd.github.v3+json'
-                    },
-                    cache: 'no-store'
-                });
-
+                const res = await fetch('/data/products.json?v=' + new Date().getTime());
                 if (!res.ok) return;
-                const files = await res.json();
                 
-                // Faqat .json fayllarni ajratib olamiz
-                const jsonFiles = Array.isArray(files) ? files.filter(f => f.name.endsWith('.json')) : [];
-                
-                // Har doim ekran tarkibini tozalaymiz
-                grid.innerHTML = '';
-
-                if (jsonFiles.length === 0) {
-                    grid.innerHTML = '<p class="text-gray-500 text-center col-span-full py-8">Hozircha mahsulotlar mavjud emas.</p>';
-                    return;
-                }
-
-                // Har bir faylni keshsiz yuklaymiz
-                const productPromises = jsonFiles.map(file => 
-                    fetch(`${file.download_url}?t=${timestamp}`, { cache: 'no-store' })
-                        .then(r => r.ok ? r.json() : null)
-                        .catch(() => null)
-                );
-                
-                const products = (await Promise.all(productPromises)).filter(p => p !== null);
+                const data = await res.json();
+                const products = data.items || [];
 
                 if (products.length > 0) {
+                    grid.innerHTML = '';
+                    
                     products.forEach(product => {
                         const imgHtml = product.image 
                             ? `<img src="${product.image}" alt="${product.title}" class="h-48 w-full object-cover">`
@@ -192,6 +168,9 @@
                 console.log("Mahsulotlarni yuklashda xatolik:", err);
             }
         }
+
+        document.addEventListener('DOMContentLoaded', loadProducts);
+        
         // Sahifa yuklanganda mahsulotlarni tortib olish
         document.addEventListener('DOMContentLoaded', loadProducts);
 
