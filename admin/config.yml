@@ -1,9 +1,10 @@
 backend:
-  name: git-gateway
+  name: github
+  repo: ViruOne/idealaqua
   branch: main
 
-media_folder: "assets/images"
-public_folder: "/assets/images"
+media_folder: "images/uploads"
+public_folder: "/images/uploads"
 
 collections:
   - name: "products"
