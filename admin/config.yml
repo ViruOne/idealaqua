@@ -17,6 +17,8 @@ collections:
           - label: "Mahsulotlar"
             name: "items"
             widget: "list"
+            required: false
+            collapsed: false
             summary: "{{fields.title}} - {{fields.price}} so'm"
             fields:
               - { label: "Nomi", name: "title", widget: "string", required: true }
