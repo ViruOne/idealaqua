@@ -5,10 +5,6 @@ backend:
   base_url: https://api.netlify.com
   site_domain: relaxed-bienenstitch-7df677.netlify.app
 
-# Oldindan ko'rish oynasidagi React xatoligini oldini olish:
-editor:
-  preview: false
-
 media_folder: "images/uploads"
 public_folder: "/images/uploads"
 
