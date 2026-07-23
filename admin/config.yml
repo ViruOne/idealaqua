@@ -9,16 +9,14 @@ public_folder: "/images/uploads"
 collections:
   - name: "products"
     label: "Mahsulotlar"
-    label_singular: "Mahsulot"
-    folder: "public/data/products"
+    folder: "public/data/products" # Mahsulotlar saqlanadigan papka
     create: true
     slug: "{{slug}}"
     extension: "json"
     format: "json"
-    summary: "{{title}} — {{price}} so'm"
     fields:
-      - { label: "Mahsulot nomi", name: "title", widget: "string", required: true }
-      - { label: "Kategoriya", name: "category", widget: "select", options: ["Fitinglar", "Tomchilatib sug'orish", "Rain Gun (Yomg'irlatgichlar)", "Nasoslar va Boshqaruv", "Quvurlar", "Boshqa"], default: "Fitinglar", required: true }
-      - { label: "Narxi (so'mda)", name: "price", widget: "number", value_type: "int", required: true }
+      - { label: "Nomi", name: "title", widget: "string" }
+      - { label: "Kategoriya", name: "category", widget: "string" }
+      - { label: "Narxi (so'm)", name: "price", widget: "number", value_type: "int" }
       - { label: "Rasm", name: "image", widget: "image", required: false }
-      - { label: "Batafsil ma'lumot", name: "body", widget: "text", required: false }
+      - { label: "Tavsif", name: "body", widget: "text", required: false }
