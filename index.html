@@ -172,7 +172,7 @@
         const t = new Date().getTime();
         let loadedItems = [];
 
-        // 1. Sveltia CMS indeks faylini o'qiymiz (/data/products.json)
+        // 1. Sveltia CMS indeks faylini o'qiymiz
         const indexRes = await fetch(`/data/products.json?v=${t}`);
         
         if (indexRes.ok) {
@@ -181,12 +181,13 @@
                 const fileList = await indexRes.json();
                 
                 if (Array.isArray(fileList)) {
-                    // Papkadagi har bir individual faylni yuklaymiz
                     const fetchPromises = fileList.map(async (fileName) => {
                         try {
                             const pRes = await fetch(`/data/products/${fileName}?v=${t}`);
                             if (pRes.ok) return await pRes.json();
-                        } catch (err) { return null; }
+                        } catch (err) {
+                            return null;
+                        }
                     });
 
                     const fetched = await Promise.all(fetchPromises);
@@ -195,7 +196,7 @@
             }
         }
 
-        // 2. AYNAN SHU YERDA: Nom va ma'lumotlarni to'g'ri biriktirish (p.title birinchi o'rinda)
+        // 2. Maydonlarni biriktirish (title birinchi o'rinda)
         allProducts = loadedItems.map((p, index) => ({
             id: p.id || `prod_${index}`,
             name: p.title || p.name || "Nomsiz mahsulot",
