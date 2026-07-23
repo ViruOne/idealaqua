@@ -19,8 +19,8 @@ collections:
             widget: "list"
             summary: "{{fields.title}} - {{fields.price}} so'm"
             fields:
-              - { label: "Nomi", name: "title", widget: "string" }
-              - { label: "Kategoriya", name: "category", widget: "select", options: ["Fitinglar", "Tomchilatib sug'orish", "Rain Gun (Yomg'irlatgichlar)", "Nasoslar va Boshqaruv", "Quvurlar", "Boshqa"], default: "Fitinglar" }
-              - { label: "Narxi (so'mda)", name: "price", widget: "number", value_type: "int" }
+              - { label: "Nomi", name: "title", widget: "string", required: true }
+              - { label: "Kategoriya", name: "category", widget: "select", options: ["Fitinglar", "Tomchilatib sug'orish", "Rain Gun (Yomg'irlatgichlar)", "Nasoslar va Boshqaruv", "Quvurlar", "Boshqa"], default: "Fitinglar", required: true }
+              - { label: "Narxi (so'mda)", name: "price", widget: "number", value_type: "int", required: true }
               - { label: "Rasm", name: "image", widget: "image", required: false }
               - { label: "Batafsil ma'lumot", name: "body", widget: "text", required: false }
