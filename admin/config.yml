@@ -1,28 +1,20 @@
-name: Generate Products Index
+backend:
+  name: github
+  repo: GITHUB_USERNAME/REPO_NOMI # Masalan: ideal-aqua/website
+  branch: main
 
-on:
-  push:
-    paths:
-      - 'data/products/**'
+media_folder: "assets/images"
+public_folder: "/assets/images"
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Generate JSON List
-        run: |
-          cd data/products
-          echo '[' > ../products.json
-          ls -1 *.json 2>/dev/null | sed 's/.*/  "&",/' | sed '$ s/,$//' >> ../products.json || true
-          echo ']' >> ../products.json
-
-      - name: Commit & Push Changes
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/products.json
-          git status
-          git diff-index --quiet HEAD || git commit -m "auto: update products.json index"
-          git push
+collections:
+  - name: "products"
+    label: "Mahsulotlar"
+    folder: "data/products"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Nomi", name: "title", widget: "string" }
+      - { label: "Kategoriya", name: "category", widget: "string", default: "Fitinglar" }
+      - { label: "Narxi (so'mda)", name: "price", widget: "number", value_type: "int" }
+      - { label: "Rasm", name: "image", widget: "image", required: false }
+      - { label: "Batafsil ma'lumot", name: "body", widget: "text", required: false }
