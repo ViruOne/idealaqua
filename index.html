@@ -170,54 +170,28 @@
     async function loadProducts() {
     try {
         const t = new Date().getTime();
-        let loadedItems = [];
-
-        // 1. Sveltia CMS ning index faylini o'qiymiz
-        const indexRes = await fetch(`/data/products.json?v=${t}`);
         
-        if (indexRes.ok) {
-            const fileList = await indexRes.json();
-            
-            if (Array.isArray(fileList)) {
-                const fetchPromises = fileList.map(async (item) => {
-                    try {
-                        let fileName = item;
-                        if (typeof item === 'object' && item !== null) {
-                            fileName = item.file || item.path || item.name;
-                        }
-                        
-                        if (!fileName) return item;
-
-                        // Agarda fayl nomi kengaytmasiz bo'lsa .json qo'shamiz
-                        if (typeof fileName === 'string' && !fileName.endsWith('.json')) {
-                            fileName += '.json';
-                        }
-
-                        const pRes = await fetch(`/data/products/${fileName}?v=${t}`);
-                        if (pRes.ok) return await pRes.json();
-                    } catch (err) { 
-                        return null; 
-                    }
-                });
-
-                const fetched = await Promise.all(fetchPromises);
-                loadedItems = fetched.filter(p => p && typeof p === 'object');
-            }
+        // public/products.json faylidan o'qiymiz
+        const res = await fetch(`/products.json?v=${t}`);
+        
+        if (!res.ok) {
+            throw new Error("products.json topilmadi");
         }
 
-        // 2. Maydon nomlarini standartlashtirish (Data Mapping)
-        allProducts = loadedItems.map((p, index) => {
-            return {
-                id: p.id || `prod_${index}`,
-                name: p.name || p.title || "Nomsiz mahsulot",
-                category: p.category || "Barchasi",
-                price: p.price || 0,
-                image: p.image || "",
-                description: p.description || p.body || ""
-            };
-        });
+        const data = await res.json();
+        
+        // Sveltia CMS yozgan 'items' massivini olamiz
+        const rawItems = Array.isArray(data) ? data : (data.items || []);
 
-        console.log("Yuklangan mahsulotlar:", allProducts); // Dasturchi konsolida tekshirish uchun
+        // Maydonlarni unifikatsiya qilamiz
+        allProducts = rawItems.map((p, index) => ({
+            id: p.id || `prod_${index}`,
+            name: p.title || p.name || "Nomsiz mahsulot",
+            category: p.category || "Barchasi",
+            price: p.price || 0,
+            image: p.image || "",
+            description: p.body || p.description || ""
+        }));
 
         renderCategories();
         filterProducts();
