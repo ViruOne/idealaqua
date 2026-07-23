@@ -168,23 +168,47 @@
     let currentCategory = 'all';
 
     async function loadProducts() {
-        try {
-            const t = new Date().getTime();
-            // To'g'ridan-to'g'ri products.json faylidan o'qiymiz
-            const res = await fetch(`/products.json?v=${t}`);
-            if (!res.ok) throw new Error("products.json topilmadi");
-            
+    try {
+        const t = new Date().getTime();
+        allProducts = [];
+
+        // 1-urinish: Top-level products.json faylini o'qib ko'ramiz
+        const res = await fetch(`/products.json?v=${t}`);
+        const contentType = res.headers.get("content-type");
+
+        if (res.ok && contentType && contentType.includes("application/json")) {
             const data = await res.json();
-            allProducts = data.items || [];
-            
-            renderCategories();
-            filterProducts();
-        } catch (e) {
-            console.error("Yuklash xatosi:", e);
-            renderCategories();
-            renderEmpty("Mahsulotlarni yuklashda xatolik yuz berdi.");
+            allProducts = Array.isArray(data) ? data : (data.items || []);
+        } else {
+            // 2-urinish: Agar root'da bo'lmasa, folder-based JSON papkani izlaymiz
+            const indexRes = await fetch(`/data/products.json?v=${t}`);
+            const indexType = indexRes.headers.get("content-type");
+
+            if (indexRes.ok && indexType && indexType.includes("application/json")) {
+                const files = await indexRes.json();
+                if (Array.isArray(files)) {
+                    const promises = files.map(async (f) => {
+                        try {
+                            if (typeof f === 'object' && f !== null) return f;
+                            const pRes = await fetch(`/data/products/${f}?v=${t}`);
+                            if (pRes.ok) return await pRes.json();
+                        } catch (err) { return null; }
+                    });
+                    const raw = await Promise.all(promises);
+                    allProducts = raw.filter(p => p && typeof p === 'object');
+                }
+            }
         }
+
+        renderCategories();
+        filterProducts();
+
+    } catch (e) {
+        console.error("Yuklash xatosi:", e);
+        renderCategories();
+        renderEmpty("Mahsulotlarni yuklashda xatolik yuz berdi.");
     }
+}
 
     // CMS'DAN KELGAN KATEGORIYALARNI CHIQARISH
     function renderCategories() {
