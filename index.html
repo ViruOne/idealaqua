@@ -167,44 +167,18 @@
     let cart = [];
     let currentCategory = 'all';
 
-  async function loadProducts() {
-    try {
-        const t = new Date().getTime();
-        // Endi to'g'ridan-to'g'ri bitta fayldan o'qiydi
-        const res = await fetch(`/products.json?v=${t}`);
-        if (!res.ok) throw new Error("products.json topilmadi");
-        
-        const data = await res.json();
-        allProducts = data.items || [];
-        
-        renderCategories();
-        filterProducts();
-    } catch (e) {
-        console.error("Yuklash xatosi:", e);
-        renderCategories();
-        renderEmpty("Mahsulotlarni yuklashda xatolik yuz berdi.");
-    }
-}
-
-            // 2. Har bir mahsulot faylini o'qiymiz
-            const promises = fileNames.map(async (f) => {
-                try {
-                    if (typeof f === 'object' && f !== null) return f;
-                    const pRes = await fetch(`/data/products/${f}?v=${t}`);
-                    if (pRes.ok) return await pRes.json();
-                } catch (e) {
-                    console.warn(`Fayl o'qishda xatolik: ${f}`, e);
-                }
-                return null;
-            });
+    async function loadProducts() {
+        try {
+            const t = new Date().getTime();
+            // To'g'ridan-to'g'ri products.json faylidan o'qiymiz
+            const res = await fetch(`/products.json?v=${t}`);
+            if (!res.ok) throw new Error("products.json topilmadi");
             
-            const rawProducts = await Promise.all(promises);
-            allProducts = rawProducts.filter(p => p !== null && typeof p === 'object');
+            const data = await res.json();
+            allProducts = data.items || [];
             
-            // Kategoriyalarni yaratish va filtrlash
             renderCategories();
             filterProducts();
-
         } catch (e) {
             console.error("Yuklash xatosi:", e);
             renderCategories();
@@ -236,7 +210,7 @@
             </button>
         `;
 
-        // Admin paneldan kiritingan har bir kategoriya uchun tugma
+        // Har bir kategoriya uchun tugma
         Object.keys(counts).forEach(cat => {
             const isActive = currentCategory === cat;
             const activeClasses = isActive 
