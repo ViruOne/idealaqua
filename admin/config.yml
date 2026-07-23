@@ -2,7 +2,6 @@ backend:
   name: github
   repo: ViruOne/idealaqua
   branch: main
-  auth_type: implicit # Server va Netlify'siz to'g'ridan-to'g'ri GitHub login
 
 media_folder: "images/uploads"
 public_folder: "/images/uploads"
