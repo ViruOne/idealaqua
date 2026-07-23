@@ -129,18 +129,34 @@
 
         let cart = [];
 
-     // Static JSON faylidan mahsulotlarni tezkor yuklash
+    // CMS saqlagan alohida JSON fayllarni yuklash
         async function loadProducts() {
             const grid = document.getElementById('products-grid');
             try {
-                const res = await fetch('/data/products.json?v=' + new Date().getTime());
+                // Keshni aylanib o'tish uchun vaqt tamg'asi
+                const cacheBuster = `?t=${new Date().getTime()}`;
+                const res = await fetch(`https://api.github.com/repos/ViruOne/idealaqua/contents/data/products${cacheBuster}`);
                 if (!res.ok) return;
                 
-                const data = await res.json();
-                const products = data.items || [];
+                const files = await res.json();
+                const jsonFiles = Array.isArray(files) ? files.filter(f => f.name.endsWith('.json')) : [];
+
+                if (jsonFiles.length === 0) {
+                    grid.innerHTML = '<p class="text-gray-500 text-center col-span-full py-8">Hozircha mahsulotlar mavjud emas.</p>';
+                    return;
+                }
+
+                // Barcha mahsulotlarni keshsiz yuklaymiz
+                const productPromises = jsonFiles.map(file => 
+                    fetch(`${file.download_url}${cacheBuster}`)
+                        .then(r => r.ok ? r.json() : null)
+                        .catch(() => null)
+                );
+                
+                const products = (await Promise.all(productPromises)).filter(p => p !== null);
 
                 if (products.length > 0) {
-                    grid.innerHTML = '';
+                    grid.innerHTML = ''; // Statik bloklarni tozalaymiz
                     
                     products.forEach(product => {
                         const imgHtml = product.image 
