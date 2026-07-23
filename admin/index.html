@@ -4,30 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Content Manager</title>
-    <!-- Netlify Identity vidjeti -->
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-    <script>
-      // Netlify bergan haqiqiy API manzilini aynan ulaymiz:
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.init({
-          APIUrl: 'https://relaxed-bienenstitch-7df677.netlify.app/.netlify/identity'
-        });
-      }
-    </script>
   </head>
   <body>
-    <!-- Decap CMS skripti -->
-    <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
-    <script>
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on("init", user => {
-          if (!user) {
-            window.netlifyIdentity.on("login", () => {
-              document.location.href = "/admin/";
-            });
-          }
-        });
-      }
-    </script>
+    <!-- Barqaror va sinovdan o'tgan Decap CMS 3.0.0 versiyasi -->
+    <script src="https://unpkg.com/decap-cms@3.0.0/dist/decap-cms.js"></script>
   </body>
 </html>
