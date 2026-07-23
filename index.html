@@ -172,21 +172,27 @@
         const t = new Date().getTime();
         let loadedItems = [];
 
-        // 1. Sveltia avtomatik yangilayotgan indeks faylni o'qiymiz
+        // 1. Sveltia CMS ning index faylini o'qiymiz
         const indexRes = await fetch(`/data/products.json?v=${t}`);
         
         if (indexRes.ok) {
             const fileList = await indexRes.json();
             
             if (Array.isArray(fileList)) {
-                // Har bir individual faylni (/data/products/name.json) parallel yuklaymiz
                 const fetchPromises = fileList.map(async (item) => {
                     try {
-                        // Agar obyekt shaklida bo'lsa to'g'ridan-to'g'ri olamiz
-                        if (typeof item === 'object' && item !== null) return item;
+                        let fileName = item;
+                        if (typeof item === 'object' && item !== null) {
+                            fileName = item.file || item.path || item.name;
+                        }
                         
-                        // Aks holda fayl nomi orqali yuklaymiz
-                        const fileName = typeof item === 'string' ? item : item.file;
+                        if (!fileName) return item;
+
+                        // Agarda fayl nomi kengaytmasiz bo'lsa .json qo'shamiz
+                        if (typeof fileName === 'string' && !fileName.endsWith('.json')) {
+                            fileName += '.json';
+                        }
+
                         const pRes = await fetch(`/data/products/${fileName}?v=${t}`);
                         if (pRes.ok) return await pRes.json();
                     } catch (err) { 
@@ -197,16 +203,21 @@
                 const fetched = await Promise.all(fetchPromises);
                 loadedItems = fetched.filter(p => p && typeof p === 'object');
             }
-        } else {
-            // Zaxira varianti: Agar topilmasa root'dagi products.json ni tekshiradi
-            const fallbackRes = await fetch(`/products.json?v=${t}`);
-            if (fallbackRes.ok) {
-                const data = await fallbackRes.json();
-                loadedItems = Array.isArray(data) ? data : (data.items || []);
-            }
         }
 
-        allProducts = loadedItems;
+        // 2. Maydon nomlarini standartlashtirish (Data Mapping)
+        allProducts = loadedItems.map((p, index) => {
+            return {
+                id: p.id || `prod_${index}`,
+                name: p.name || p.title || "Nomsiz mahsulot",
+                category: p.category || "Barchasi",
+                price: p.price || 0,
+                image: p.image || "",
+                description: p.description || p.body || ""
+            };
+        });
+
+        console.log("Yuklangan mahsulotlar:", allProducts); // Dasturchi konsolida tekshirish uchun
 
         renderCategories();
         filterProducts();
