@@ -42,38 +42,45 @@
 <body class="min-h-full bg-slate-900 text-slate-100 flex flex-col antialiased selection:bg-aqua-500 selection:text-white">
 
     <!-- Navbar -->
-    <header class="bg-slate-950/80 backdrop-blur-xl border-b border-slate-800 sticky top-0 z-30">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center bg-slate-900 border border-slate-800 shadow-lg shadow-aqua-500/10 shrink-0">
-                    <img src="favicon.png" alt="IDEAL AQUA Logo" class="w-full h-full object-cover">
-                </div>
-                <div>
-                    <span class="text-base sm:text-lg font-bold tracking-wider text-white block leading-tight">IDEAL AQUA</span>
-                    <span class="block text-[9px] sm:text-[10px] text-aqua-400 font-semibold uppercase tracking-widest">Industrial LLC</span>
-                </div>
-                <a href="https://idealaqua.uz" target="_blank" 
-   class="hidden sm:flex items-center gap-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition">
-    <i class="fas fa-globe text-aqua-400"></i>
-    <span>Bosh sahifa</span>
-</a>
+   <!-- Header ichidagi moslashtirilgan qism -->
+<header class="bg-slate-950/80 backdrop-blur-xl border-b border-slate-800 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+        
+        <!-- Logotip va O'ng tomondagi tugma bloki -->
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center bg-slate-900 border border-slate-800 shadow-lg shadow-aqua-500/10 shrink-0">
+                <img src="favicon.png" alt="IDEAL AQUA Logo" class="w-full h-full object-cover">
+            </div>
+            <div>
+                <span class="text-base sm:text-lg font-bold tracking-wider text-white block leading-tight">IDEAL AQUA</span>
+                <span class="block text-[9px] sm:text-[10px] text-aqua-400 font-semibold uppercase tracking-widest">Industrial LLC</span>
             </div>
 
-            <!-- Search (Desktop) -->
-            <div class="flex-1 max-w-md relative hidden sm:block">
-                <i class="fas fa-search absolute left-3.5 top-3 text-slate-500 text-sm"></i>
-                <input type="text" id="search-input" oninput="filterProducts()" placeholder="Mahsulot qidirish..." 
-                       class="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-aqua-500 text-slate-200 placeholder-slate-500 transition">
-            </div>
-
-            <!-- Cart Trigger (Desktop) -->
-            <button onclick="toggleCart(true)" class="relative bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 px-4 py-2 rounded-xl text-sm font-semibold hidden sm:flex items-center gap-2 transition">
-                <i class="fas fa-cart-flatbed text-aqua-400"></i>
-                <span>Savatcha</span>
-                <span id="cart-badge" class="bg-aqua-500 text-slate-950 text-xs font-bold px-2 py-0.5 rounded-full">0</span>
-            </button>
+            <!-- LOGOTIPNING O'NG TOMONIDAGI ASOSIY SAYTGA O'TISH TUGMASI -->
+            <a href="https://idealaqua.uz" target="_blank" 
+               class="ml-1 sm:ml-2 flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-aqua-500/40 text-slate-300 hover:text-white px-2.5 py-1.5 rounded-xl text-[11px] font-semibold transition active:scale-95 shrink-0">
+                <i class="fas fa-globe text-aqua-400 text-xs"></i>
+                <span class="hidden xs:inline">idealaqua.uz</span>
+                <span class="xs:hidden">Sayt</span>
+                <i class="fas fa-external-link-alt text-[9px] text-slate-500 ml-0.5"></i>
+            </a>
         </div>
-    </header>
+
+        <!-- Search (Desktop) -->
+        <div class="flex-1 max-w-md relative hidden md:block">
+            <i class="fas fa-search absolute left-3.5 top-3 text-slate-500 text-sm"></i>
+            <input type="text" id="search-input" oninput="filterProducts()" placeholder="Mahsulot qidirish..." 
+                   class="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-aqua-500 text-slate-200 placeholder-slate-500 transition">
+        </div>
+
+        <!-- Cart Trigger (Desktop) -->
+        <button onclick="toggleCart(true)" class="relative bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 px-4 py-2 rounded-xl text-sm font-semibold hidden sm:flex items-center gap-2 transition">
+            <i class="fas fa-cart-flatbed text-aqua-400"></i>
+            <span>Savatcha</span>
+            <span id="cart-badge" class="bg-aqua-500 text-slate-950 text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+        </button>
+    </div>
+</header>
 
     <!-- Mobil uchun Qidiruv Paneli -->
     <div class="sm:hidden px-4 pt-4">
